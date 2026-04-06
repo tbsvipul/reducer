@@ -182,7 +182,7 @@ class _ExifEraserScreenState extends State<ExifEraserScreen> {
         decoration: BoxDecoration(
           color: DesignTokens.accentBlue,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: DesignTokens.primaryBlue.withOpacity(0.2), style: BorderStyle.solid),
+          border: Border.all(color: DesignTokens.primaryBlue.withValues(alpha: 0.2), style: BorderStyle.solid),
         ),
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,

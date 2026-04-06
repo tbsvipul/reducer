@@ -101,7 +101,7 @@ class HomeScreen extends ConsumerWidget {
         label: Text('New Edit', style: AppTextStyles.buttonText(context)),
       )
           .animate(onPlay: (controller) => controller.repeat(reverse: true))
-          .shimmer(delay: 2000.ms, duration: 1500.ms, color: Colors.white.withOpacity(0.2)),
+          .shimmer(delay: 2000.ms, duration: 1500.ms, color: Colors.white.withValues(alpha: 0.2)),
     );
   }
 
@@ -302,7 +302,7 @@ class _ToolCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(isDark ? 0.2 : 0.1),
+                  color: color.withValues(alpha: isDark ? 0.2 : 0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 child: Icon(icon, color: color, size: AppSpacing.iconLg),

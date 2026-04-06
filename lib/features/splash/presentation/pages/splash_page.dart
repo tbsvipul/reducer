@@ -79,7 +79,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -112,7 +112,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
             Text(
               'Pro Editing Suite',
               style: AppTextStyles.titleMedium(context).copyWith(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 letterSpacing: 2,
               ),
             )
