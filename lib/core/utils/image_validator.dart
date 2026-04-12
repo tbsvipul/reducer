@@ -44,7 +44,14 @@ class ImageValidator {
           errorMessage: 'Cannot decode image.\nFile may be corrupted or invalid format.',
         );
       }
-      return validateDimensions(image);
+      final dimensionResult = validateDimensions(image);
+      if (!dimensionResult.isValid) return dimensionResult;
+
+      return ValidationResult(
+        isValid: true,
+        width: image.width,
+        height: image.height,
+      );
     } catch (e) {
       return ValidationResult(
         isValid: false,
@@ -63,8 +70,13 @@ class ImageValidator {
     final imageResult = validateImageData(bytes);
     if (!imageResult.isValid) return imageResult;
 
-    // All checks passed, but return size warning if exists
-    return sizeResult.hasWarning ? sizeResult : ValidationResult(isValid: true);
+    // All checks passed, return dimensions and size warning if exists
+    return ValidationResult(
+      isValid: true,
+      warningMessage: sizeResult.warningMessage,
+      width: imageResult.width,
+      height: imageResult.height,
+    );
   }
 
   /// Show validation error dialog
@@ -107,11 +119,15 @@ class ValidationResult {
   final bool isValid;
   final String? errorMessage;
   final String? warningMessage;
+  final int? width;
+  final int? height;
 
   ValidationResult({
     required this.isValid,
     this.errorMessage,
     this.warningMessage,
+    this.width,
+    this.height,
   });
 
   bool get hasWarning => warningMessage != null;

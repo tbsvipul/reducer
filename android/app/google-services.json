@@ -12,7 +12,20 @@
           "package_name": "com.tarurinfotech.reducer"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "690861600563-aq4v0mes52bfqrhn3jsjsb18gif626ln.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tarurinfotech.reducer",
+            "certificate_hash": "3eb7fa6118729bb28d35bf6f168fad52b737998d"
+          }
+        },
+        {
+          "client_id": "690861600563-pvqg661j3j4gepctd9bfnjdqpu6u8mvq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD_KOvmSGFqOdB_z3HbxfwCeCyW1NOKrNw"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "690861600563-pvqg661j3j4gepctd9bfnjdqpu6u8mvq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "690861600563-s7agv03e46n8vu1vnbguqad543vnpcr3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.reducer"
+              }
+            }
+          ]
         }
       },
       "admob_app_id": "ca-app-pub-9155918242947466~4984600180"

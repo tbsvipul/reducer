@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:reducer/core/theme/app_colors.dart';
 import 'package:reducer/core/theme/app_spacing.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
+import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -46,6 +47,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
       // 3. Initialize ads (consent-aware)
       await AdManager.initialize();
+
+      // 4. Initialize Auth (Anonymous sign-in for cloud sync prep)
+      final authService = ref.read(authServiceProvider);
+      if (authService.currentUser == null) {
+        await authService.signInAnonymously();
+      }
     } catch (e) {
       debugPrint('Splash init error: $e');
     }

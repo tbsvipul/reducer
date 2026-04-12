@@ -27,10 +27,12 @@ class PermissionService {
         return true;
       }
       if (status.isPermanentlyDenied) {
-        _showSettingsSnack(
-          context,
-          'Camera access is blocked. Enable it in Settings.',
-        );
+        if (context.mounted) {
+          _showSettingsSnack(
+            context,
+            'Camera access is blocked. Enable it in Settings.',
+          );
+        }
         return false;
       }
 
@@ -40,10 +42,12 @@ class PermissionService {
         return true;
       }
       if (status.isPermanentlyDenied) {
-        _showSettingsSnack(
-          context,
-          'Camera access is blocked. Enable it in Settings.',
-        );
+        if (context.mounted) {
+          _showSettingsSnack(
+            context,
+            'Camera access is blocked. Enable it in Settings.',
+          );
+        }
       }
       return false;
     } finally {
@@ -66,10 +70,12 @@ class PermissionService {
           return true;
         }
         if (status.isPermanentlyDenied) {
-          _showSettingsSnack(
-            context,
-            'Photo access is blocked. Enable it in Settings.',
-          );
+          if (context.mounted) {
+            _showSettingsSnack(
+              context,
+              'Photo access is blocked. Enable it in Settings.',
+            );
+          }
           return false;
         }
       }
@@ -81,10 +87,12 @@ class PermissionService {
           return true;
         }
         if (status.isPermanentlyDenied) {
-          _showSettingsSnack(
-            context,
-            'Photo access is blocked. Enable it in Settings.',
-          );
+          if (context.mounted) {
+            _showSettingsSnack(
+              context,
+              'Photo access is blocked. Enable it in Settings.',
+            );
+          }
           return false;
         }
       }
@@ -93,10 +101,12 @@ class PermissionService {
         permissions.map((permission) => permission.isPermanentlyDenied),
       );
       if (blocked.any((isBlocked) => isBlocked)) {
-        _showSettingsSnack(
-          context,
-          'Photo access is blocked. Enable it in Settings.',
-        );
+        if (context.mounted) {
+          _showSettingsSnack(
+            context,
+            'Photo access is blocked. Enable it in Settings.',
+          );
+        }
       }
       return false;
     } finally {

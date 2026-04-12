@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:reducer/features/gallery/gallery.dart';
+import 'package:reducer/features/gallery/data/models/history_item.dart';
 import 'package:reducer/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
@@ -189,3 +189,4 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart' as google_auth;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,18 +13,22 @@ import 'core/routes/app_router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 1. Core initialization
-  await Firebase.initializeApp();
+  // 1. Configure global image cache early to avoid memory spikes
+  PaintingBinding.instance.imageCache
+    ..maximumSizeBytes = 120 << 20 // 120MB
+    ..maximumSize = 200;
 
-  // 2. Configure UMP debug settings before any ad request is made.
+  // 2. Core initialization
+  await Firebase.initializeApp();
+  await google_auth.GoogleSignIn.instance.initialize();
+
+  // 3. Configure UMP debug settings before any ad request is made.
   await ConsentManager().configure(
     testDeviceIds: _umpTestDeviceIdsFromEnv(),
     forceEeaInDebug: kDebugMode,
   );
   
-  // In-app purchase relies on the stream defined in purchase_datasource.dart
-    
-  // 3. Start App
+  // 4. Start App
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -37,14 +42,14 @@ List<String> _umpTestDeviceIdsFromEnv() {
       .toList(growable: false);
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> {
   // Observes foreground/background transitions for App Open ads
   final AppLifecycleObserver _lifecycleObserver = AppLifecycleObserver();
 
@@ -63,10 +68,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Cap global image cache to avoid memory spikes
-    PaintingBinding.instance.imageCache
-      ..maximumSizeBytes = 120 << 20
-      ..maximumSize = 200;
+    final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
       title: 'ImageMaster Pro',
@@ -74,7 +76,8 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      routerConfig: appRouter,
+      routerConfig: router,
     );
   }
 }
+

@@ -93,22 +93,26 @@ class ImageProcessor {
   /// Native processing core using flutter_image_compress
   static Future<Uint8List?> _processNative(Uint8List bytes, ImageSettings settings) async {
     try {
-      final decoded = img.decodeImage(bytes);
-      if (decoded == null) throw Exception('Failed to decode image for dimensions');
+      // ── OPTIMIZATION: Decode image dimensions in background isolate ──────
+      final dimensions = await compute(_getImageDimensions, bytes);
+      
+      if (dimensions == null) throw Exception('Failed to decode image dimensions');
 
       // Guard extreme dimensions to avoid OOM
-      const int maxPixels = 20 * 1000 * 1000; // 20 MP
-      if (decoded.width * decoded.height > maxPixels) {
-        debugPrint('Image too large (${decoded.width}x${decoded.height}), skipping processing.');
+      const int maxPixels = 40 * 1000 * 1000; // Raised to 40MP for modern devices
+      if (dimensions.width * dimensions.height > maxPixels) {
+        debugPrint('Image too large (${dimensions.width}x${dimensions.height}), skipping.');
         return null;
       }
 
-      int targetWidth = (decoded.width * (settings.scalePercent / 100.0)).toInt();
-      int targetHeight = (decoded.height * (settings.scalePercent / 100.0)).toInt();
+      // Calculate exact target dimensions matching the UI's rounding logic
+      final double scaleFactor = settings.scalePercent / 100.0;
+      int targetWidth = (dimensions.width * scaleFactor).toInt();
+      int targetHeight = (dimensions.height * scaleFactor).toInt();
 
-      // Ensure dimensions are positive and valid
-      if (targetWidth <= 0) targetWidth = 1;
-      if (targetHeight <= 0) targetHeight = 1;
+      // Ensure at least 1x1 dimensions
+      targetWidth = targetWidth.clamp(1, 10000);
+      targetHeight = targetHeight.clamp(1, 10000);
 
       CompressFormat format;
       switch (settings.format) {
@@ -125,12 +129,15 @@ class ImageProcessor {
         rotate: settings.rotation.toInt(),
         format: format,
       );
-
+      // Handle flipping if required
       if (settings.flipHorizontal || settings.flipVertical) {
         result = await compute(_handleFlipInIsolate, _FlipParams(
           bytes: result,
           flipH: settings.flipHorizontal,
           flipV: settings.flipVertical,
+          format: settings.format,
+          targetWidth: targetWidth,
+          targetHeight: targetHeight,
         ));
       }
 
@@ -143,17 +150,50 @@ class ImageProcessor {
   }
 }
 
+/// Helper DTO for dimensions
+class _ImageDimensions {
+  final int width;
+  final int height;
+  _ImageDimensions(this.width, this.height);
+}
+
+/// Top-level function for [compute] to decode dimensions off-main-thread
+_ImageDimensions? _getImageDimensions(Uint8List bytes) {
+  // ── OPTIMIZATION: Use img.decodeImage(bytes) only if necessary ───────────
+  // Using img.Command() or just looking at headers is faster,
+  // but for broad compatibility with minimal code change, we use img.decodeImage
+  // but we can also use img.decodeJpg, decodePng, etc. based on first bytes.
+  
+  final info = img.decodeImage(bytes);
+  if (info == null) return null;
+  return _ImageDimensions(info.width, info.height);
+}
+
 /// Helper for flipping images in a background isolate.
 /// Must be a top-level function for [compute].
 Uint8List _handleFlipInIsolate(_FlipParams params) {
   var image = img.decodeImage(params.bytes);
   if (image == null) return params.bytes;
 
+  // Strict resizing to ensure the dimension matches the UI exactly after flip
+  if (params.targetWidth != null && params.targetHeight != null) {
+    if (image.width != params.targetWidth || image.height != params.targetHeight) {
+      image = img.copyResize(image, width: params.targetWidth, height: params.targetHeight);
+    }
+  }
+
   if (params.flipH) image = img.flipHorizontal(image);
   if (params.flipV) image = img.flipVertical(image);
 
-  // Use a high quality for the intermediate flip step
-  return Uint8List.fromList(img.encodeJpg(image, quality: 95));
+  // Use the correct encoder based on the requested format
+  switch (params.format) {
+    case ImageFormat.png:
+      return Uint8List.fromList(img.encodePng(image));
+    case ImageFormat.webp:
+      return Uint8List.fromList(img.encodePng(image)); // Best quality fallback
+    default:
+      return Uint8List.fromList(img.encodeJpg(image, quality: 95));
+  }
 }
 
 /// Parameters for the flipping isolate.
@@ -161,5 +201,16 @@ class _FlipParams {
   final Uint8List bytes;
   final bool flipH;
   final bool flipV;
-  _FlipParams({required this.bytes, required this.flipH, required this.flipV});
+  final ImageFormat format;
+  final int? targetWidth;
+  final int? targetHeight;
+
+  _FlipParams({
+    required this.bytes,
+    required this.flipH,
+    required this.flipV,
+    required this.format,
+    this.targetWidth,
+    this.targetHeight,
+  });
 }

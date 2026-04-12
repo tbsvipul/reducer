@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:reducer/features/gallery/data/models/history_item.dart';
+import 'package:reducer/core/services/sync_service.dart';
 
 class HistoryState {
   final List<HistoryItem> items;
@@ -54,6 +55,7 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
     state = nextState;
   }
 
+
   Future<void> addItem(HistoryItem item) async {
     final current = await _readSafeState();
     final updatedItems = [item, ...current.items]
@@ -62,6 +64,10 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
     state = AsyncValue.data(
       current.copyWith(items: updatedItems, isLoading: false),
     );
+
+    // ── CLOUD SYNC: Real-time backup ──────────────────────────────────
+    final syncService = ref.read(syncServiceProvider);
+    unawaited(syncService.syncItem(item));
 
     // Fix: Persist in background to keep save flow responsive.
     unawaited(_saveToStorage(updatedItems));
@@ -76,6 +82,10 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
     state = AsyncValue.data(
       current.copyWith(items: updatedItems, isLoading: false),
     );
+
+    // ── CLOUD SYNC: Real-time deletion ────────────────────────────────
+    final syncService = ref.read(syncServiceProvider);
+    unawaited(syncService.deleteItem(id));
 
     unawaited(_saveToStorage(updatedItems));
   }

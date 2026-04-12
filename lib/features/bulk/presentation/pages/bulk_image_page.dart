@@ -13,14 +13,17 @@ import 'package:reducer/core/theme/design_tokens.dart';
 import 'package:reducer/core/theme/app_theme.dart';
 import 'package:reducer/core/models/image_settings.dart';
 import 'package:reducer/core/utils/image_processor.dart';
-import 'package:reducer/core/widgets/custom_button.dart';
-import 'package:reducer/core/widgets/ads/banner_ad_widget.dart';
-import 'package:reducer/features/gallery/gallery.dart';
+import 'package:reducer/shared/presentation/widgets/custom_button.dart';
+import 'package:reducer/shared/presentation/widgets/ads/banner_ad_widget.dart';
+import 'package:reducer/features/gallery/presentation/controllers/history_controller.dart';
+import 'package:reducer/features/gallery/data/models/history_item.dart';
+import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
 import 'package:reducer/core/utils/thumbnail_generator.dart';
-import 'package:reducer/features/premium/premium.dart';
 import 'package:reducer/core/ads/ad_manager.dart';
 import 'package:uuid/uuid.dart';
 import 'package:reducer/core/services/permission_service.dart';
+import 'package:reducer/features/bulk/presentation/widgets/image_grid_tile.dart';
+
 
 class BulkImageScreen extends ConsumerStatefulWidget {
   const BulkImageScreen({super.key});
@@ -293,9 +296,11 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen> {
           '${tempDir.path}/imagemaster_bulk_${DateTime.now().millisecondsSinceEpoch}.zip');
       await zipFile.writeAsBytes(zipBytes);
 
-      await Share.shareXFiles(
-        [XFile(zipFile.path)],
-        text: 'Bulk processed images (${successfulResults.length} files)',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(zipFile.path)],
+          text: 'Bulk processed images (${successfulResults.length} files)',
+        ),
       );
 
       if (!mounted) return;
@@ -395,7 +400,7 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen> {
                           _processedResults[xFile.name] != null;
 
                       // ── FIX 15: Extracted to const-friendly widget ──────
-                      return _ImageGridTile(
+                      return ImageGridTile(
                         path: xFile.path,
                         isProcessed: isProcessed,
                         hasSucceeded: hasSucceeded,
@@ -669,55 +674,6 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen> {
   }
 }
 
-// ── FIX 15: Extracted grid tile widget — prevents full-list rebuild ──────────
-class _ImageGridTile extends StatelessWidget {
-  const _ImageGridTile({
-    required this.path,
-    required this.isProcessed,
-    required this.hasSucceeded,
-  });
-
-  final String path;
-  final bool isProcessed;
-  final bool hasSucceeded;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.file(
-            File(path),
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            // ── FIX 16: Limit decode resolution for grid thumbnails ────────
-            cacheWidth: 200,
-            cacheHeight: 200,
-            gaplessPlayback: true,
-          ),
-        ),
-        if (isProcessed)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: hasSucceeded
-                    ? Colors.green.withValues(alpha: 0.3)
-                    : Colors.red.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                hasSucceeded ? Iconsax.tick_circle : Iconsax.close_circle,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
 
 // ── Isolate helpers (must be top-level or static) ────────────────────────────
 
@@ -741,3 +697,4 @@ Future<List<int>?> _buildZipIsolate(_ZipArgs args) async {
     return null;
   }
 }
+

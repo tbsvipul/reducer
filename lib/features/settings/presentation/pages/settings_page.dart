@@ -8,6 +8,9 @@ import 'package:reducer/features/premium/data/datasources/purchase_datasource.da
 import 'package:reducer/core/theme/app_colors.dart';
 import 'package:reducer/core/theme/app_spacing.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
+import 'package:reducer/features/settings/presentation/widgets/settings_tile.dart';
+import 'package:reducer/features/settings/presentation/widgets/settings_section_header.dart';
+
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -20,9 +23,11 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _shareApp(BuildContext context) {
-    Share.share(
-      'Check out ImageMaster Pro - The ultimate image redactor and processing tool! Download here: https://play.google.com/store/apps/details?id=com.tarur.imagemetrics',
-      subject: 'ImageMaster Pro',
+    SharePlus.instance.share(
+      ShareParams(
+        text: 'Check out ImageMaster Pro - The ultimate image redactor and processing tool! Download here: https://play.google.com/store/apps/details?id=com.tarur.imagemetrics',
+        subject: 'ImageMaster Pro',
+      ),
     );
   }
 
@@ -39,7 +44,8 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           // ── Premium Section ───────────────────────────────────────────────
           if (!premiumState.isPro) ...[
-            _buildSectionHeader('Subscription', context),
+            const SettingsSectionHeader(title: 'Subscription'),
+
             Card(
               child: ListTile(
                 leading: const Icon(Iconsax.crown, color: AppColors.premium),
@@ -51,7 +57,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.xl),
           ] else ...[
-            _buildSectionHeader('Subscription', context),
+            const SettingsSectionHeader(title: 'Subscription'),
+
             Card(
               child: ListTile(
                 leading: const Icon(Iconsax.verify, color: AppColors.success),
@@ -64,24 +71,28 @@ class SettingsScreen extends ConsumerWidget {
           ],
 
           // ── Support & Feedback ──────────────────────────────────────────────
-          _buildSectionHeader('Support & Feedback', context),
+          const SettingsSectionHeader(title: 'Support & Feedback'),
+
           Card(
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-                _SettingsTile(
+                SettingsTile(
+
                   icon: Iconsax.star,
                   title: 'Rate on Play Store',
                   onTap: () => _launchUrl('https://play.google.com/store/apps/details?id=com.tarur.imagemetrics'),
                 ),
                 const Divider(),
-                _SettingsTile(
+                SettingsTile(
+
                   icon: Iconsax.share,
                   title: 'Share ImageMaster',
                   onTap: () => _shareApp(context),
                 ),
                 const Divider(),
-                _SettingsTile(
+                SettingsTile(
+
                   icon: Iconsax.message_question,
                   title: 'Contact Support',
                   onTap: () => _launchUrl('mailto:support@tarur.com?subject=ImageMaster%20Support'),
@@ -92,12 +103,14 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
 
           // ── About ───────────────────────────────────────────────────────────
-          _buildSectionHeader('About', context),
+          const SettingsSectionHeader(title: 'About'),
+
           Card(
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-                _SettingsTile(
+                SettingsTile(
+
                   icon: Iconsax.shield_tick,
                   title: 'Privacy Policy',
                   onTap: () => context.push('/privacy-policy'),
@@ -123,36 +136,5 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildSectionHeader(String title, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: AppSpacing.sm, bottom: AppSpacing.sm),
-      child: Text(
-        title,
-        style: AppTextStyles.labelLarge(context).copyWith(color: AppColors.primary),
-      ),
-    );
-  }
 }
 
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      trailing: const Icon(Iconsax.arrow_right_3, size: 16),
-      onTap: onTap,
-    );
-  }
-}

@@ -7,8 +7,8 @@ import 'package:gal/gal.dart';
 import 'dart:io';
 import 'package:reducer/core/theme/design_tokens.dart';
 import 'package:reducer/core/theme/app_theme.dart';
-import 'package:reducer/core/widgets/custom_button.dart';
-import 'package:reducer/core/widgets/ads/banner_ad_widget.dart';
+import 'package:reducer/shared/presentation/widgets/custom_button.dart';
+import 'package:reducer/shared/presentation/widgets/ads/banner_ad_widget.dart';
 import 'package:reducer/core/ads/ad_manager.dart';
 import 'package:reducer/core/services/permission_service.dart';
 
@@ -228,3 +228,4 @@ class _ExifEraserScreenState extends State<ExifEraserScreen> {
     );
   }
 }
+

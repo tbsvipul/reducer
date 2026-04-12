@@ -65,11 +65,13 @@ class AdManager {
 
   bool get isInterstitialReady => _interstitialAd != null && !_isShowing;
 
+  int _interstitialRetryCount = 0;
+
   void loadInterstitialAd() {
     if (isPremium || _isInterstitialLoading || _interstitialAd != null) return;
 
     _isInterstitialLoading = true;
-    debugPrint('[AdManager] Loading Interstitial...');
+    debugPrint('[AdManager] Loading Interstitial (Attempt ${_interstitialRetryCount + 1})...');
 
     InterstitialAd.load(
       adUnitId: AdIds.interstitialId,
@@ -78,14 +80,19 @@ class AdManager {
         onAdLoaded: (ad) {
           _interstitialAd = ad;
           _isInterstitialLoading = false;
+          _interstitialRetryCount = 0; // Reset on success
           debugPrint('[AdManager] ✅ Interstitial loaded');
         },
         onAdFailedToLoad: (error) {
           _interstitialAd = null;
           _isInterstitialLoading = false;
+          _interstitialRetryCount++;
           debugPrint('[AdManager] ❌ Interstitial failed: $error');
-          // Retry logic with back-off
-          Future.delayed(const Duration(minutes: 1), loadInterstitialAd);
+          
+          // Exponential backoff: 30s, 60s, 120s... max 30 mins
+          final delaySeconds = (30 * (1 << (_interstitialRetryCount - 1))).clamp(30, 1800);
+          debugPrint('[AdManager] Retrying Interstitial in $delaySeconds seconds');
+          Future.delayed(Duration(seconds: delaySeconds), loadInterstitialAd);
         },
       ),
     );
@@ -133,18 +140,21 @@ class AdManager {
   DateTime? _appOpenLoadTime;
 
   bool get isAppOpenReady {
-    if (isPremium || _appOpenAd == null || _appOpenLoadTime == null)
+    if (isPremium || _appOpenAd == null || _appOpenLoadTime == null) {
       return false;
+    }
     // Expire preloaded ad after 4 hours
     return DateTime.now().difference(_appOpenLoadTime!) <
         const Duration(hours: 4);
   }
 
+  int _appOpenRetryCount = 0;
+
   Future<void> loadAppOpenAd() async {
     if (isPremium || _isAppOpenLoading || _appOpenAd != null) return;
 
     _isAppOpenLoading = true;
-    debugPrint('[AdManager] Loading App Open...');
+    debugPrint('[AdManager] Loading App Open (Attempt ${_appOpenRetryCount + 1})...');
 
     await AppOpenAd.load(
       adUnitId: AdIds.appOpenId,
@@ -154,12 +164,19 @@ class AdManager {
           _appOpenAd = ad;
           _isAppOpenLoading = false;
           _appOpenLoadTime = DateTime.now();
+          _appOpenRetryCount = 0; // Reset on success
           debugPrint('[AdManager] ✅ App Open loaded');
         },
         onAdFailedToLoad: (error) {
           _isAppOpenLoading = false;
           _appOpenAd = null;
+          _appOpenRetryCount++;
           debugPrint('[AdManager] ❌ App Open failed: $error');
+
+          // Exponential backoff
+          final delaySeconds = (30 * (1 << (_appOpenRetryCount - 1))).clamp(30, 1800);
+          debugPrint('[AdManager] Retrying App Open in $delaySeconds seconds');
+          Future.delayed(Duration(seconds: delaySeconds), loadAppOpenAd);
         },
       ),
     );
