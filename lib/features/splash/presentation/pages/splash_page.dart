@@ -89,16 +89,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo Container
+            // Logo Container with Glassmorphism
             Container(
               padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withOpacity(0.05),
                 shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 20,
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
                 ],
@@ -106,7 +107,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
               child: const Icon(
                 Iconsax.gallery_edit,
                 size: AppSpacing.iconXl4,
-                color: AppColors.primaryDark,
+                color: Color(0xFFEAB308), // Using the premium yellow/gold
               ),
             )
                 .animate()
@@ -120,6 +121,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
               'ImageMaster',
               style: AppTextStyles.displaySmall(context).copyWith(
                 color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1,
               ),
             )
                 .animate()
@@ -128,10 +131,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
             // Subtitle
             Text(
-              'Pro Editing Suite',
+              'PRO EDITING SUITE',
               style: AppTextStyles.titleMedium(context).copyWith(
-                color: Colors.white.withValues(alpha: 0.8),
-                letterSpacing: 2,
+                color: Colors.white.withOpacity(0.5),
+                letterSpacing: 4,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
               ),
             )
                 .animate()
@@ -142,8 +147,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
             // Loading Indicator
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              strokeWidth: 3,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEAB308)),
+              strokeWidth: 2,
             )
              .animate()
              .fadeIn(delay: 1200.ms, duration: 600.ms),

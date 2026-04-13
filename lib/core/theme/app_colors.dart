@@ -58,7 +58,7 @@ class AppColors {
   // ── Gradients ─────────────────────────────────────────────────────────────────
   static const List<Color> primaryGradient = [primary, Color(0xFF7986CB)];
   static const List<Color> premiumGradient = [Color(0xFFF59E0B), Color(0xFFFC6736)];
-  static const List<Color> splashGradient = [Color(0xFF3949AB), Color(0xFF1A237E)];
+  static const List<Color> splashGradient = [Color(0xFF0F172A), Color(0xFF020617)];
   static const List<Color> successGradient = [Color(0xFF10B981), Color(0xFF059669)];
 
   // ── Shadows ───────────────────────────────────────────────────────────────────
