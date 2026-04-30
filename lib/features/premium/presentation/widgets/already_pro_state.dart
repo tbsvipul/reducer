@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
-import 'package:reducer/shared/widgets/app_button.dart';
+import 'package:reducer/common/widgets/app_button.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
+import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reducer/l10n/app_localizations.dart';
@@ -71,17 +71,17 @@ class AlreadyProState extends ConsumerWidget {
                     ),
                     Expanded(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl3, vertical: 20),
+                        padding: EdgeInsets.symmetric(horizontal: AppDimensions.xl3.w, vertical: 20.h),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(height: 20.h),
                             Container(
-                              padding: const EdgeInsets.all(20),
+                              padding: EdgeInsets.all(20.r),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: const Color(0xFFFACC15).withValues(alpha: 0.1),
-                                border: Border.all(color: const Color(0xFFFACC15).withValues(alpha: 0.2)),
+                                border: Border.all(color: const Color(0xFFFACC15).withValues(alpha: 0.2), width: 1.r),
                               ),
                               child: Icon(
                                 Icons.verified,
@@ -89,7 +89,7 @@ class AlreadyProState extends ConsumerWidget {
                                 color: const Color(0xFFFACC15),
                               ),
                             ).animate().scale(duration: 800.ms, curve: Curves.elasticOut),
-                            const SizedBox(height: AppSpacing.xl2),
+                            SizedBox(height: AppDimensions.xl2.h),
                             Text(
                               l10n.eliteMember,
                               style: TextStyle(
@@ -99,7 +99,7 @@ class AlreadyProState extends ConsumerWidget {
                                 letterSpacing: -0.5,
                               ),
                             ).animate().fadeIn(delay: 200.ms),
-                            const SizedBox(height: AppSpacing.md),
+                            SizedBox(height: AppDimensions.md.h),
                             Text(
                               l10n.fullAccessActive,
                               textAlign: TextAlign.center,
@@ -109,36 +109,36 @@ class AlreadyProState extends ConsumerWidget {
                               ),
                             ).animate().fadeIn(delay: 400.ms),
                             
-                            const SizedBox(height: AppSpacing.xl4),
+                            SizedBox(height: AppDimensions.xl4.h),
                             // Plan Info Card
                             Container(
-                              padding: const EdgeInsets.all(AppSpacing.xl2),
+                              padding: EdgeInsets.all(AppDimensions.xl2.r),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusXl2),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                borderRadius: BorderRadius.circular(AppDimensions.radiusXl2.r),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.r),
                               ),
                               child: Column(
                                 children: [
                                   _buildInfoRow(l10n.currentPlan, type.toUpperCase(), isGold: true),
-                                  const  Divider(height: AppSpacing.xl3, color: Colors.white10),
+                                  Divider(height: AppDimensions.xl3.h, color: Colors.white10, thickness: 1.r),
                                   _buildInfoRow(l10n.statusLabel, status.toUpperCase()),
-                                  const Divider(height: AppSpacing.xl3, color: Colors.white10),
+                                  Divider(height: AppDimensions.xl3.h, color: Colors.white10, thickness: 1.r),
                                   _buildInfoRow(l10n.startDate, start),
-                                  const Divider(height: AppSpacing.xl3, color: Colors.white10),
+                                  Divider(height: AppDimensions.xl3.h, color: Colors.white10, thickness: 1.r),
                                   _buildInfoRow(l10n.nextBilling, expiry),
                                 ],
                               ),
                             ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1, end: 0),
 
-                            const SizedBox(height: AppSpacing.xl5),
+                            SizedBox(height: AppDimensions.xl5.h),
                             AppButton(
                               label: l10n.manageSubscription,
                               icon: Icons.settings,
                               style: AppButtonStyle.outline,
                               onPressed: () => _openSubscriptionManagement(),
                             ).animate().fadeIn(delay: 800.ms),
-                            const SizedBox(height: AppSpacing.xl),
+                            SizedBox(height: AppDimensions.xl.h),
                           ],
                         ),
                       ),

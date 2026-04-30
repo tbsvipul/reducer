@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
-import 'package:reducer/shared/widgets/app_button.dart';
-import 'package:reducer/shared/widgets/app_card.dart';
+import 'package:reducer/common/widgets/app_button.dart';
+import 'package:reducer/common/widgets/app_card.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 
 
@@ -16,7 +16,7 @@ class PremiumLoginRequiredBlock extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppDimensions.md),
       color: isDark
           ? AppColors.darkSurface.withValues(alpha: 0.92)
           : AppColors.lightSurface.withValues(alpha: 0.96),
@@ -29,7 +29,7 @@ class PremiumLoginRequiredBlock extends StatelessWidget {
           Row(
             children: [
               const Icon(Icons.login, color: AppColors.warning),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppDimensions.sm),
               Expanded(
                 child: Text(
                   AppLocalizations.of(context)!.loginRequiredForPremium,
@@ -38,12 +38,12 @@ class PremiumLoginRequiredBlock extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppDimensions.sm),
           Text(
             AppLocalizations.of(context)!.guestModePremiumMessage,
             style: AppTextStyles.bodySmall(context),
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppDimensions.md),
           Row(
             children: [
               Expanded(
@@ -57,7 +57,7 @@ class PremiumLoginRequiredBlock extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppDimensions.sm),
               Expanded(
                 child: AppButton(
                   label: AppLocalizations.of(context)!.register,

@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,8 +13,10 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:reducer/core/ads/ad_manager.dart';
 import 'package:reducer/core/config/app_config.dart';
 import 'package:reducer/core/services/notification_service.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
+import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:reducer/features/premium/domain/models/premium_plan.dart';
+
+import '../../../auth/domain/models/user_model.dart';
 
 const String _kSecIsPro = 'is_pro_user';
 const String _kSecProVerifiedAt = 'pro_verified_at_ms';
@@ -81,9 +82,27 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
 
   PurchaseNotifier(this._ref) : super(const PurchaseState()) {
     _init();
+    _listenToUserChanges();
   }
 
-  User? get _currentUser => _ref.read(authServiceProvider).currentUser;
+  AppUser? get _currentUser => _ref.read(authRepositoryProvider).currentUser;
+
+  void _listenToUserChanges() {
+    // Watch userProvider for real-time Firestore updates
+    _ref.listen<AsyncValue<AppUser?>>(userProvider, (previous, next) {
+      final user = next.value;
+      if (user != null) {
+        final isPro = user.subscriptionStatus == 'premium';
+        if (isPro != state.isPro) {
+          _setProStatusLocally(isPro);
+        }
+      } else {
+        if (state.isPro) {
+          _setProStatusLocally(false);
+        }
+      }
+    });
+  }
 
   bool get _hasEligiblePremiumAccount {
     final user = _currentUser;
@@ -195,16 +214,24 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
         isPro = true;
       }
     } else {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      final remoteStatus = doc.data()?['subscriptionStatus'] as String?;
-      if (remoteStatus == 'premium') {
-        final verified = await _verifyStoredSubscriptionFromServer();
-        if (verified) {
-          isPro = true;
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        if (doc.exists) {
+          final userData = AppUser.fromFirestore(doc);
+          final remoteStatus = userData.subscriptionStatus;
+          
+          if (remoteStatus == 'premium') {
+            // We trust Firestore status, but trigger background verification if possible
+            isPro = true;
+            unawaited(_verifyStoredSubscriptionFromServer());
+          }
         }
+      } catch (e) {
+        debugPrint('[Purchase] Firestore check failed: $e');
       }
     }
 

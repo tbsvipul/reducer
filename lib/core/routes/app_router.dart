@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:reducer/features/auth/presentation/pages/login_screen.dart';
-import 'package:reducer/features/auth/presentation/pages/register_screen.dart';
-import 'package:reducer/features/auth/presentation/pages/profile_screen.dart';
-import 'package:reducer/features/auth/presentation/pages/forgot_password_screen.dart';
+import 'package:reducer/features/auth/presentation/pages/login_page.dart';
+import 'package:reducer/features/auth/presentation/pages/register_page.dart';
+import 'package:reducer/features/profile/presentation/pages/profile_page.dart';
+import 'package:reducer/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:reducer/features/auth/presentation/pages/change_password_page.dart';
 import 'package:reducer/core/routes/router_notifier.dart';
-import 'package:reducer/features/splash/presentation/pages/splash_page.dart';
+import 'package:reducer/features/splash/splash_page.dart';
 import 'package:reducer/features/home/presentation/pages/main_screen.dart';
 import 'package:reducer/features/home/presentation/pages/home_page.dart';
 import 'package:reducer/features/editor/presentation/pages/single_image_page.dart';
@@ -90,7 +91,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/profile',
-                builder: (context, state) => const ProfileScreen(),
+                builder: (context, state) => const ProfilePage(),
               ),
             ],
           ),
@@ -128,17 +129,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => LoginScreen(redirectTo: state.uri.queryParameters['redirect']),
+        builder: (context, state) => const LoginPage(),
       ),
       GoRoute(
         path: '/register',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => RegisterScreen(redirectTo: state.uri.queryParameters['redirect']),
+        builder: (context, state) => const RegisterPage(),
       ),
       GoRoute(
         path: '/forgot-password',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const ForgotPasswordScreen(),
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/change-password',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ChangePasswordPage(),
       ),
       GoRoute(
         path: '/language-selection',

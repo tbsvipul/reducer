@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
-import 'app_spacing.dart';
+import 'app_dimensions.dart';
 
 class AppTheme {
   AppTheme._();
@@ -73,7 +73,7 @@ class AppTheme {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           side: const BorderSide(color: AppColors.lightBorder, width: 1),
         ),
       ),
@@ -85,7 +85,7 @@ class AppTheme {
           elevation: 0,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: TextStyle(fontFamily: _fontFamily, fontSize: 15, fontWeight: FontWeight.w600),
@@ -97,7 +97,7 @@ class AppTheme {
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: TextStyle(fontFamily: _fontFamily, fontSize: 15, fontWeight: FontWeight.w600),
@@ -107,7 +107,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
           textStyle: TextStyle(fontFamily: _fontFamily, fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
@@ -116,7 +116,7 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.lightSurfaceVariant,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
           borderSide: BorderSide.none,
         ),
         labelStyle: TextStyle(fontFamily: _fontFamily, color: AppColors.onLightSurfaceVariant, fontSize: 14),
@@ -202,7 +202,7 @@ class AppTheme {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           side: const BorderSide(color: AppColors.darkBorder, width: 1),
         ),
       ),
@@ -213,7 +213,7 @@ class AppTheme {
           foregroundColor: AppColors.primaryDark,
           elevation: 0,
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusLg)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: TextStyle(fontFamily: _fontFamily, fontSize: 15, fontWeight: FontWeight.w600),
         ),
@@ -223,7 +223,7 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.darkSurfaceVariant,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
           borderSide: BorderSide.none,
         ),
         labelStyle: TextStyle(fontFamily: _fontFamily, color: AppColors.onDarkSurfaceVariant, fontSize: 14),
@@ -269,7 +269,7 @@ class AppTheme {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
       color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
       border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1),
     );
   }
@@ -277,7 +277,7 @@ class AppTheme {
   static BoxDecoration primaryGradientDecoration({double? radius}) {
     return BoxDecoration(
       gradient: const LinearGradient(colors: AppColors.primaryGradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
-      borderRadius: BorderRadius.circular(radius ?? AppSpacing.radiusLg),
+      borderRadius: BorderRadius.circular(radius ?? AppDimensions.radiusLg),
     );
   }
 }

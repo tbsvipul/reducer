@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reducer/features/premium/domain/models/premium_plan.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -23,7 +23,7 @@ class PackageCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+        margin: const EdgeInsets.symmetric(horizontal: AppDimensions.xs),
         padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 12.w),
         decoration: BoxDecoration(
           color: isSelected 

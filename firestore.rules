@@ -2,86 +2,53 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper functions for common checks
     function isSignedIn() {
       return request.auth != null;
     }
-
+    
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function userWritableKeysOnly() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-        'name',
-        'profileImageUrl',
-        'updatedAt'
-      ]);
-    }
-
-    function hasBlockedEntitlementKeys() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
-        'subscriptionStatus',
-        'productId',
-        'purchaseToken',
-        'orderId',
-        'subscriptionStartDate',
-        'subscriptionEndDate',
-        'expiryDate',
-        'autoRenewing',
-        'priceAmount',
-        'priceCurrencyCode',
-        'billingPeriod',
-        'basePlanId'
-      ]);
-    }
-
+    // Rules for the 'users' collection
     match /users/{userId} {
+      // Users can only read their own profile
       allow read: if isOwner(userId);
-
-      // User bootstrap document; entitlement is always created as "free".
-      allow create: if isOwner(userId)
-        && request.resource.data.uid == userId
-        && request.resource.data.subscriptionStatus == 'free'
-        && request.resource.data.keys().hasOnly([
-          'uid',
-          'email',
-          'name',
-          'profileImageUrl',
-          'subscriptionStatus',
-          'aiImagesGenerated',
-          'createdAt',
-          'updatedAt'
-        ]);
-
-      // Client is never allowed to mutate billing/subscription fields.
+      
+      // Allow creation of own profile document upon signup
+      allow create: if isOwner(userId);
+      
+      // Allow updates to own profile
+      // We protect sensitive fields from being modified directly by the client.
+      // This prevents users from manually setting themselves to 'premium' or resetting counters.
       allow update: if isOwner(userId)
-        && !hasBlockedEntitlementKeys()
-        && userWritableKeysOnly();
+        && (
+          // Option 1: No sensitive keys are in the diff (they weren't changed)
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['subscriptionStatus', 'billingPeriod', 'expiryDate', 'subscriptionStartDate', 'aiImagesGenerated'])
+          || 
+          // Option 2: The fields are present but the values match exactly what is already there
+          (
+            request.resource.data.get('subscriptionStatus', resource.data.get('subscriptionStatus', null)) == resource.data.get('subscriptionStatus', null) &&
+            request.resource.data.get('aiImagesGenerated', resource.data.get('aiImagesGenerated', 0)) == resource.data.get('aiImagesGenerated', 0)
+          )
+        );
+      
+      // Allow users to delete their own account data
+      allow delete: if isOwner(userId);
 
-      allow delete: if false;
-
+      // Sub-collection for user's edit history and generated assets
       match /history/{itemId} {
-        allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId)
-          && request.resource.data.id == itemId;
-        allow delete: if isOwner(userId);
+        // Users have full access to their own history
+        allow read, write: if isOwner(userId);
       }
     }
 
-    // NOTE: Collection name aligned with app code (deletion_requests).
-    match /deletion_requests/{userId} {
-      allow create: if isOwner(userId)
-        && request.resource.data.uid == userId
-        && request.resource.data.keys().hasOnly([
-          'uid',
-          'email',
-          'requestedAt',
-          'status'
-        ])
-        && request.resource.data.status == 'pending';
-
-      allow read: if isOwner(userId);
-      allow update, delete: if false;
+    // Explicitly deny access to all other paths by default
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

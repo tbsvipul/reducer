@@ -1,24 +1,31 @@
 import 'dart:async';
-import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
-import 'package:reducer/features/exif/presentation/providers/exif_providers.dart';
-import 'package:go_router/go_router.dart';
-import 'package:reducer/core/services/permission_service.dart';
-import 'package:reducer/core/ads/ad_manager.dart';
-import 'package:reducer/shared/presentation/widgets/ads/banner_ad_widget.dart';
-import 'package:reducer/shared/widgets/app_button.dart';
-import 'package:reducer/core/theme/app_theme.dart';
-import 'package:reducer/core/theme/app_colors.dart';
 import 'dart:io';
-import 'package:gal/gal.dart';
-import 'package:iconsax/iconsax.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:reducer/l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:go_router/go_router.dart';
+import 'package:gal/gal.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:reducer/core/theme/app_colors.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
+import 'package:reducer/core/theme/app_text_styles.dart';
+import 'package:reducer/core/theme/app_theme.dart';
+import 'package:reducer/core/services/permission_service.dart';
+import 'package:reducer/core/ads/ad_manager.dart';
+import 'package:reducer/l10n/app_localizations.dart';
+
+import 'package:reducer/common/widgets/app_button.dart';
+import 'package:reducer/common/widgets/app_dialog.dart';
+import 'package:reducer/common/presentation/widgets/ads/banner_ad_widget.dart';
+
+import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
+import 'package:reducer/features/exif/presentation/providers/exif_providers.dart';
+
+/// Screen for removing EXIF metadata from images to protect privacy.
 class ExifEraserScreen extends ConsumerStatefulWidget {
   const ExifEraserScreen({super.key});
 
@@ -27,44 +34,36 @@ class ExifEraserScreen extends ConsumerStatefulWidget {
 }
 
 class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
-  XFile? _selectedImages;
+  XFile? _selectedImage;
   bool _isProcessing = false;
+
+  // ─────────────────────────────────────────────
+  // SECTION: Actions
+  // ─────────────────────────────────────────────
 
   Future<void> _pickImage() async {
     if (!await PermissionService.instance.ensurePhotosPermission(context)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.permissionRequiredToAccessPhotos)),
-        );
-      }
+      debugPrint('Permission Error: Photos permission required');
       return;
     }
+
     final picker = ImagePicker();
-    XFile? image;
     try {
-      image = await picker.pickImage(source: ImageSource.gallery);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.unableToOpenGallery(e.toString()))),
-        );
+      final image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() => _selectedImage = image);
       }
-      return;
-    }
-    if (image != null) {
-      setState(() {
-        _selectedImages = image;
-      });
+    } catch (e) {
+      debugPrint('Gallery Error: $e');
     }
   }
 
   Future<void> _cleanMetadata() async {
-    if (_selectedImages == null) return;
+    if (_selectedImage == null) return;
 
     final isPro = ref.read(premiumControllerProvider).isPro;
     final credits = ref.read(exifCreditProvider).availableCredits;
 
-    // Hard Gate Check: Redirect to premium if out of credits
     if (!isPro && credits <= 0) {
       if (mounted) unawaited(context.push('/premium'));
       return;
@@ -74,54 +73,32 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
 
     try {
       if (!await PermissionService.instance.ensurePhotosPermission(context)) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.storagePermissionRequiredToSave)),
-          );
-        }
+        debugPrint('Permission Error: Storage permission required');
         return;
       }
+
       final tempDir = await getTemporaryDirectory();
       final targetPath = '${tempDir.path}/clean_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      // flutter_image_compress removes EXIF by default
       final result = await FlutterImageCompress.compressAndGetFile(
-        _selectedImages!.path,
+        _selectedImage!.path,
         targetPath,
         quality: 95,
-        keepExif: false, // This is the key
+        keepExif: false,
       );
 
       if (result != null) {
-        // Save to gallery with robust error handling
-        try {
-          await Gal.putImage(result.path, album: 'Reducer');
-        } catch (e) {
-          debugPrint('Gal save error: $e');
-          throw 'Failed to save to gallery. Please check storage space and permissions.';
-        }
+        await Gal.putImage(result.path, album: 'Reducer');
 
         if (mounted) {
-          // Consume credit for free users
           if (!isPro) {
             await ref.read(exifCreditProvider.notifier).useCredit();
           }
-          if (mounted) {
-            _showSuccessDialog(context);
-          }
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.failedToCleanMetadata)),
-          );
+          _showSuccessDialog();
         }
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.errorCleaningMetadata(e.toString()))),
-      );
+      debugPrint('Metadata Error: $e');
     } finally {
       if (mounted) {
         setState(() => _isProcessing = false);
@@ -129,75 +106,50 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
     }
   }
 
-  void _showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        icon: Icon(Iconsax.tick_circle5, color: Colors.green, size: 64.r),
-        title: Text(AppLocalizations.of(context)!.success),
-        content: Text(
-          AppLocalizations.of(context)!.exifSuccessMessage,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14.sp),
+  void _showSuccessDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    AppDialog.show(
+      context,
+      title: l10n.success,
+      message: l10n.exifSuccessMessage,
+      type: AppDialogType.success,
+      customActions: [
+        AppButton(
+          label: l10n.viewHistory,
+          onPressed: () {
+            Navigator.pop(context);
+            setState(() => _selectedImage = null);
+            context.go('/gallery');
+          },
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() => _selectedImages = null);
-            },
-            child: Text(AppLocalizations.of(context)!.done),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() => _selectedImages = null);
-              context.go('/gallery');
-            },
-            child: Text(AppLocalizations.of(context)!.viewHistory),
-          ),
-        ],
-      ),
+        AppButton(
+          label: l10n.done,
+          style: AppButtonStyle.outline,
+          onPressed: () {
+            Navigator.pop(context);
+            setState(() => _selectedImage = null);
+          },
+        ),
+      ],
     );
   }
+
+  // ─────────────────────────────────────────────
+  // SECTION: Build
+  // ─────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final creditState = ref.watch(exifCreditProvider);
     final isPro = ref.watch(premiumControllerProvider).isPro;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.exifEraser, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20.sp)),
-        elevation: 0,
+        title: Text(l10n.exifEraser),
         centerTitle: false,
         actions: [
-          if (!isPro && !creditState.isLoading)
-            Center(
-              child: Container(
-                margin: EdgeInsets.only(right: 16.w),
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: creditState.availableCredits > 0 
-                      ? Colors.green.withValues(alpha: 0.1) 
-                      : Colors.red.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(
-                    color: creditState.availableCredits > 0 ? Colors.green : Colors.red,
-                    width: 0.5.w,
-                  ),
-                ),
-                child: Text(
-                  AppLocalizations.of(context)!.freeTrialLeft(creditState.availableCredits),
-                  style: TextStyle(
-                    color: creditState.availableCredits > 0 ? Colors.green : Colors.red,
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+          if (!isPro && !creditState.isLoading) _buildCreditBadge(creditState, l10n),
         ],
       ),
       body: Column(
@@ -205,49 +157,24 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
           const BannerAdWidget(),
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(24.w),
+              padding: EdgeInsets.all(AppDimensions.pagePadding.r),
               child: Column(
                 children: [
-                   Container(
-                    padding: EdgeInsets.all(20.r),
-                    decoration: AppTheme.cardDecoration(context),
-                    child: Column(
-                      children: [
-                        Icon(Iconsax.shield_tick, size: 64.r, color: AppColors.primary),
-                        SizedBox(height: 16.h),
-                        Text(
-                          AppLocalizations.of(context)!.privacyFirst,
-                          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          AppLocalizations.of(context)!.privacyFirstDescription,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey, fontSize: 13.sp),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 32.h),
-                  
-                  if (_selectedImages == null)
-                    _buildUploadPlaceholder()
+                  _buildPrivacyInfo(context, l10n),
+                  SizedBox(height: AppDimensions.xl2.h),
+                  if (_selectedImage == null)
+                    _buildUploadPlaceholder(l10n)
                   else
                     _buildImagePreview(),
-                  
-                  SizedBox(height: 32.h),
-                  
-                  if (_selectedImages != null)
+                  SizedBox(height: AppDimensions.xl2.h),
+                  if (_selectedImage != null)
                     AppButton(
-                      label: _isProcessing 
-                          ? AppLocalizations.of(context)!.cleaning 
-                          : AppLocalizations.of(context)!.cleanAndSave,
+                      label: _isProcessing ? l10n.cleaning : l10n.cleanAndSave,
                       icon: Iconsax.shield_tick,
+                      isLoading: _isProcessing,
                       onPressed: () => AdManager().showInterstitialAd(
                         onComplete: _cleanMetadata,
                       ),
-                      isLoading: _isProcessing,
-                      isFullWidth: true,
                     ),
                 ],
               ),
@@ -258,25 +185,70 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
     );
   }
 
-  Widget _buildUploadPlaceholder() {
+  Widget _buildCreditBadge(ExifCreditState creditState, AppLocalizations l10n) {
+    final color = creditState.availableCredits > 0 ? AppColors.success : AppColors.error;
+    return Center(
+      child: Container(
+        margin: EdgeInsets.only(right: AppDimensions.md.w),
+        padding: EdgeInsets.symmetric(horizontal: AppDimensions.sm.w, vertical: AppDimensions.xs2.h),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSm.r),
+          border: Border.all(color: color, width: 0.5.w),
+        ),
+        child: Text(
+          l10n.freeTrialLeft(creditState.availableCredits),
+          style: AppTextStyles.badgeLabel(context).copyWith(color: color),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacyInfo(BuildContext context, AppLocalizations l10n) {
+    return Container(
+      padding: EdgeInsets.all(AppDimensions.xl.r),
+      decoration: AppTheme.cardDecoration(context),
+      child: Column(
+        children: [
+          Icon(Iconsax.shield_tick, size: 64.r, color: AppColors.primary),
+          SizedBox(height: AppDimensions.md.h),
+          Text(
+            l10n.privacyFirst,
+            style: AppTextStyles.titleLarge(context),
+          ),
+          SizedBox(height: AppDimensions.xs.h),
+          Text(
+            l10n.privacyFirstDescription,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUploadPlaceholder(AppLocalizations l10n) {
     return GestureDetector(
       onTap: _pickImage,
       child: Container(
         height: 200.h,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
-          borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), style: BorderStyle.solid),
+          color: AppColors.primary.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusXl.r),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            style: BorderStyle.solid,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Iconsax.add_square, size: 48.r, color: AppColors.primary),
-            SizedBox(height: 12.h),
+            SizedBox(height: AppDimensions.md.h),
             Text(
-              AppLocalizations.of(context)!.tapToSelectImage, 
-              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500, fontSize: 16.sp),
+              l10n.tapToSelectImage,
+              style: AppTextStyles.titleMedium(context).copyWith(color: AppColors.primary),
             ),
           ],
         ),
@@ -291,24 +263,24 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
           alignment: Alignment.topRight,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(20.r),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusXl.r),
               child: Image.file(
-                File(_selectedImages!.path),
+                File(_selectedImage!.path),
                 height: 300.h,
                 width: double.infinity,
                 fit: BoxFit.contain,
               ),
             ),
             IconButton(
-              icon: Icon(Iconsax.close_circle, color: Colors.red, size: 24.r),
-              onPressed: () => setState(() => _selectedImages = null),
+              icon: Icon(Iconsax.close_circle, color: AppColors.error, size: 24.r),
+              onPressed: () => setState(() => _selectedImage = null),
             ),
           ],
         ),
-        SizedBox(height: 12.h),
+        SizedBox(height: AppDimensions.md.h),
         Text(
-          _selectedImages!.name,
-          style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+          _selectedImage!.name,
+          style: AppTextStyles.bodySmall(context),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

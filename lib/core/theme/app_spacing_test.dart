@@ -1,6 +1,6 @@
 /// Spacing, radius, and elevation design tokens
-class AppSpacing {
-  AppSpacing._();
+class AppDimensions {
+  AppDimensions._();
 
   // ── Spacing ───────────────────────────────────────────────────────────────────
   static double get xs2 => 2.0;

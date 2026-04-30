@@ -126,22 +126,7 @@ class PermissionService {
   }
 
   void _showSettingsSnack(BuildContext context, String message) {
-    if (!context.mounted) return;
-
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
-
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(message),
-        action: SnackBarAction(
-          label: 'Settings',
-          onPressed: () {
-            openAppSettings();
-          },
-        ),
-      ),
-    );
+    debugPrint('PERMISSION ERROR: $message');
   }
 }
 

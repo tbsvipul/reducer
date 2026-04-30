@@ -1,11 +1,33 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:path/path.dart' as p;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'package:reducer/core/theme/app_colors.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
+import 'package:reducer/core/theme/app_text_styles.dart';
+import 'package:reducer/core/models/image_settings.dart';
+import 'package:reducer/core/ads/ad_manager.dart';
+import 'package:reducer/core/services/permission_service.dart';
+import 'package:reducer/core/services/analytics_service.dart';
+import 'package:reducer/core/utils/file_utils.dart';
+import 'package:reducer/core/utils/image_validator.dart';
+import 'package:reducer/l10n/app_localizations.dart';
+
+import 'package:reducer/common/widgets/app_button.dart';
+import 'package:reducer/common/widgets/app_snackbar.dart';
+import 'package:reducer/common/widgets/app_empty_state.dart';
+import 'package:reducer/common/presentation/widgets/ads/banner_ad_widget.dart';
+import 'package:reducer/common/presentation/widgets/ads/native_ad_widget.dart';
+
 import 'package:reducer/features/gallery/data/models/history_item.dart';
 import 'package:reducer/features/gallery/presentation/controllers/history_controller.dart';
 import 'package:reducer/features/editor/presentation/controllers/single_image_controller.dart';
@@ -13,24 +35,9 @@ import 'package:reducer/features/editor/presentation/widgets/compress_tab_view.d
 import 'package:reducer/features/editor/presentation/widgets/resize_tab_view.dart';
 import 'package:reducer/features/editor/presentation/widgets/format_tab_view.dart';
 import 'package:reducer/features/editor/presentation/widgets/export_tab_view.dart';
-import 'package:reducer/core/models/image_settings.dart';
-import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
-import 'package:reducer/core/theme/app_text_styles.dart';
-import 'package:reducer/core/services/permission_service.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'package:uuid/uuid.dart';
-import 'package:path/path.dart' as p;
-import 'package:reducer/core/ads/ad_manager.dart';
-import 'package:reducer/core/services/analytics_service.dart';
 import 'package:reducer/features/settings/presentation/controllers/review_controller.dart';
-import 'package:reducer/shared/presentation/widgets/ads/banner_ad_widget.dart';
-import 'package:reducer/shared/presentation/widgets/ads/native_ad_widget.dart';
-import 'package:reducer/l10n/app_localizations.dart';
-import 'package:reducer/core/utils/file_utils.dart';
-import 'package:reducer/core/utils/image_validator.dart';
 
+/// Screen for editing and optimizing a single image.
 class SingleImageScreen extends ConsumerStatefulWidget {
   const SingleImageScreen({super.key});
 
@@ -60,12 +67,102 @@ class _SingleImageScreenState extends ConsumerState<SingleImageScreen>
     super.dispose();
   }
 
+  // ─────────────────────────────────────────────
+  // SECTION: Processing & Actions
+  // ─────────────────────────────────────────────
+
   Future<void> _handleProcess() async {
     await AdManager().showInterstitialAd(onComplete: () async {
       await ref.read(singleImageControllerProvider.notifier).processFinalImage();
       if (mounted) _tabController.animateTo(3);
     });
   }
+
+  Future<void> _saveToGallery(SingleImageState state) async {
+    final processedBytes = state.processedImageBytes;
+    final previewBytes = state.previewThumbnail ?? state.originalThumbnail;
+    if (processedBytes == null || previewBytes == null || !mounted) return;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    await AdManager().showInterstitialAd(onComplete: () async {
+      try {
+        if (!mounted) return;
+        final ok = await PermissionService.instance.ensurePhotosPermission(context);
+        if (!ok || !mounted) return;
+
+        final timestampMs = DateTime.now().millisecondsSinceEpoch;
+        final appDir = await getApplicationDocumentsDirectory();
+        final thumbRelativePath = 'history/thumb_$timestampMs.jpg';
+        final processedRelativePath = 'history/proc_$timestampMs.${state.settings.format.extension}';
+
+        final thumbFile = File(p.join(appDir.path, thumbRelativePath));
+        final procFile = File(p.join(appDir.path, processedRelativePath));
+
+        await Directory(p.dirname(thumbFile.path)).create(recursive: true);
+        await procFile.writeAsBytes(processedBytes);
+        await thumbFile.writeAsBytes(previewBytes);
+
+        await Gal.putImage(procFile.path, album: 'Reducer');
+        if (!mounted) return;
+
+        final historyItem = HistoryItem(
+          id: const Uuid().v4(),
+          thumbnailPath: thumbRelativePath,
+          processedPaths: [processedRelativePath],
+          originalPath: state.originalFile?.path ?? '',
+          settings: state.settings,
+          timestamp: DateTime.now(),
+          originalSize: state.originalSize,
+          processedSize: processedBytes.length,
+        );
+
+        await ref.read(historyControllerProvider.notifier).addItem(historyItem);
+        if (!mounted) return;
+
+        unawaited(ref.read(analyticsServiceProvider).logCompressionSuccess(
+              type: 'single',
+              originalSize: state.originalSize,
+              compressedSize: processedBytes.length,
+              imageCount: 1,
+            ));
+        unawaited(ref.read(reviewControllerProvider).recordSuccessfulSave());
+
+        if (mounted) {
+          AppSnackbar.show(context, l10n.compressionSuccess);
+        }
+      } catch (e) {
+        if (mounted) debugPrint('Save Error: $e');
+      }
+    });
+  }
+
+  Future<void> _shareImage(SingleImageState state) async {
+    if (state.processedImageBytes == null || !mounted) return;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/share_${DateTime.now().millisecondsSinceEpoch}.${state.settings.format.extension}');
+      await file.writeAsBytes(state.processedImageBytes!);
+
+      if (mounted) {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(file.path)],
+            text: l10n.shareWithReducer,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) debugPrint('Share Error: $e');
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // SECTION: Build
+  // ─────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -84,130 +181,26 @@ class _SingleImageScreenState extends ConsumerState<SingleImageScreen>
         child: Column(
           children: [
             const BannerAdWidget(),
-            _buildPreviewHeader(state),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-              child: Container(
-                height: 52.h,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
-                  borderRadius: BorderRadius.circular(26.r),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22.r),
-                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                    border: Border.all(
-                      color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
-                    ),
-                    boxShadow: [
-                      if (!isDark)
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                    ],
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: isDark ? Colors.white : AppColors.primary,
-                  unselectedLabelColor: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
-                  dividerColor: Colors.transparent,
-                  labelPadding: EdgeInsets.zero,
-                  labelStyle: AppTextStyles.labelMedium(context).copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                  unselectedLabelStyle: AppTextStyles.labelMedium(context).copyWith(
-                    fontWeight: FontWeight.normal,
-                  ),
-                  tabs: [
-                    Tab(text: l10n.compress),
-                    Tab(text: l10n.resize),
-                    Tab(text: l10n.format),
-                    Tab(text: l10n.export),
-                  ],
-                ),
-              ),
-            ),
-
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  CompressTabView(
-                    settings: state.settings,
-                    onSettingsChanged: (s) => ref.read(singleImageControllerProvider.notifier).updateSettings(s),
-                  ),
-                  ResizeTabView(
-                    settings: state.settings,
-                    originalWidth: state.originalWidth,
-                    originalHeight: state.originalHeight,
-                    onSettingsChanged: (s) => ref.read(singleImageControllerProvider.notifier).updateSettings(s),
-                  ),
-                  FormatTabView(
-                    settings: state.settings,
-                    onSettingsChanged: (s) => ref.read(singleImageControllerProvider.notifier).updateSettings(s),
-                  ),
-                  ExportTabView(
-                    processedImageBytes: state.processedImageBytes,
-                    settings: state.settings,
-                    originalSize: state.originalSize,
-                    originalWidth: state.originalWidth,
-                    originalHeight: state.originalHeight,
-                    onSave: () => _saveToGallery(state),
-                    onShare: () => _shareImage(state),
-                  ),
-                ],
-              ),
-            ),
-
-            Consumer(
-              builder: (context, ref, child) {
-                final tabIndex = ref.watch(singleImageTabIndexProvider);
-                if (tabIndex >= 3) return const SizedBox.shrink();
-                
-                final isProcessing = ref.watch(singleImageControllerProvider.select((s) => s.isProcessingFinal));
-                
-                return Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: isProcessing ? null : _handleProcess,
-                      icon: const Icon(Iconsax.flash),
-                      label: Text(isProcessing ? l10n.processingDot : l10n.processImage),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+            _buildPreviewHeader(state, isDark, l10n),
+            _buildTabBar(isDark, l10n),
+            _buildTabContent(state),
+            _buildProcessFooter(l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPreviewHeader(SingleImageState state) {
-    final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildPreviewHeader(SingleImageState state, bool isDark, AppLocalizations l10n) {
     final displayImage = _showOriginal ? state.originalThumbnail! : (state.previewThumbnail ?? state.originalThumbnail!);
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.all(AppSpacing.lg),
-      padding: const EdgeInsets.all(AppSpacing.md),
+      margin: EdgeInsets.all(AppDimensions.lg.r),
+      padding: EdgeInsets.all(AppDimensions.md.r),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXl.r),
         border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
       ),
       child: Column(
@@ -215,35 +208,35 @@ class _SingleImageScreenState extends ConsumerState<SingleImageScreen>
           Stack(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(16.r),
+                borderRadius: BorderRadius.circular(AppDimensions.radiusLg.r),
                 child: Image.memory(
                   displayImage,
                   height: 180.h,
                   width: double.infinity,
                   fit: BoxFit.contain,
-                  cacheHeight: 360, 
+                  cacheHeight: 360,
                 ),
               ),
               Positioned(
-                top: 8.h,
-                right: 8.w,
+                top: AppDimensions.sm.h,
+                right: AppDimensions.sm.w,
                 child: GestureDetector(
                   onTap: () => setState(() => _showOriginal = !_showOriginal),
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    padding: EdgeInsets.symmetric(horizontal: AppDimensions.md.w, vertical: AppDimensions.xs.h),
                     decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: _showOriginal ? AppColors.primary : Colors.white24),
+                      color: Colors.black.withValues(alpha: 0.87),
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
+                      border: Border.all(color: _showOriginal ? AppColors.primary : Colors.white.withValues(alpha: 0.24)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.circle, size: 8.r, color: _showOriginal ? AppColors.warning : AppColors.primary),
-                        SizedBox(width: 6.w),
+                        Icon(Icons.circle, size: AppDimensions.xs.r, color: _showOriginal ? AppColors.warning : AppColors.primary),
+                        SizedBox(width: AppDimensions.xs.w),
                         Text(
-                          _showOriginal ? l10n.showAfter : l10n.showBefore, 
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          _showOriginal ? l10n.showAfter : l10n.showBefore,
+                          style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -252,7 +245,7 @@ class _SingleImageScreenState extends ConsumerState<SingleImageScreen>
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppDimensions.xl.h),
           Text(
             '${state.originalWidth} × ${state.originalHeight} · ${FileUtils.formatFileSize(state.originalSize)}',
             style: TextStyle(
@@ -266,35 +259,135 @@ class _SingleImageScreenState extends ConsumerState<SingleImageScreen>
     );
   }
 
+  Widget _buildTabBar(bool isDark, AppLocalizations l10n) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w, vertical: AppDimensions.sm.h),
+      child: Container(
+        height: 52.h,
+        padding: EdgeInsets.all(AppDimensions.xs.r),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusXl2.r),
+        ),
+        child: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusXl.r),
+            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.05),
+            ),
+            boxShadow: [
+              if (!isDark)
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: AppDimensions.xs.r,
+                  offset: Offset(0, 2.h),
+                ),
+            ],
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelColor: isDark ? Colors.white : AppColors.primary,
+          unselectedLabelColor: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+          dividerColor: Colors.transparent,
+          labelPadding: EdgeInsets.zero,
+          labelStyle: AppTextStyles.labelMedium(context).copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5.w,
+            fontSize: 12.sp,
+          ),
+          unselectedLabelStyle: AppTextStyles.labelMedium(context).copyWith(
+            fontWeight: FontWeight.normal,
+            fontSize: 12.sp,
+          ),
+          tabs: [
+            Tab(text: l10n.compress),
+            Tab(text: l10n.resize),
+            Tab(text: l10n.format),
+            Tab(text: l10n.export),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabContent(SingleImageState state) {
+    return Expanded(
+      child: TabBarView(
+        controller: _tabController,
+        children: [
+          CompressTabView(
+            settings: state.settings,
+            onSettingsChanged: (s) => ref.read(singleImageControllerProvider.notifier).updateSettings(s),
+          ),
+          ResizeTabView(
+            settings: state.settings,
+            originalWidth: state.originalWidth,
+            originalHeight: state.originalHeight,
+            onSettingsChanged: (s) => ref.read(singleImageControllerProvider.notifier).updateSettings(s),
+          ),
+          FormatTabView(
+            settings: state.settings,
+            onSettingsChanged: (s) => ref.read(singleImageControllerProvider.notifier).updateSettings(s),
+          ),
+          ExportTabView(
+            processedImageBytes: state.processedImageBytes,
+            settings: state.settings,
+            originalSize: state.originalSize,
+            originalWidth: state.originalWidth,
+            originalHeight: state.originalHeight,
+            onSave: () => _saveToGallery(state),
+            onShare: () => _shareImage(state),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProcessFooter(AppLocalizations l10n) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final tabIndex = ref.watch(singleImageTabIndexProvider);
+        if (tabIndex >= 3) return const SizedBox.shrink();
+
+        final isProcessing = ref.watch(singleImageControllerProvider.select((s) => s.isProcessingFinal));
+
+        return Padding(
+          padding: EdgeInsets.all(AppDimensions.lg.r),
+          child: AppButton(
+            label: isProcessing ? l10n.processingDot : l10n.processImage,
+            icon: Iconsax.flash,
+            isLoading: isProcessing,
+            onPressed: isProcessing ? null : _handleProcess,
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: EdgeInsets.all(AppDimensions.pagePadding.r),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const BannerAdWidget(),
-              const SizedBox(height: 40),
-              const Icon(Iconsax.image, size: 64, color: AppColors.primary),
-              const SizedBox(height: 16),
-              Text(
-                l10n.pickImageToStart,
-                style: AppTextStyles.titleLarge(context).copyWith(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                l10n.pickImageSubtitle, 
-                textAlign: TextAlign.center, 
-                style: TextStyle(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+              SizedBox(height: 40.h),
+              AppEmptyState(
+                title: l10n.pickImageToStart,
+                subtitle: l10n.pickImageSubtitle,
+                icon: Iconsax.image,
               ),
               SizedBox(height: 32.h),
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton.icon(
+                    child: AppButton(
+                      label: l10n.gallery,
+                      icon: Iconsax.gallery,
                       onPressed: () async {
                         final l10nCapture = AppLocalizations.of(context)!;
                         try {
@@ -305,17 +398,14 @@ class _SingleImageScreenState extends ConsumerState<SingleImageScreen>
                           }
                         }
                       },
-                      icon: const Icon(Iconsax.gallery),
-                      label: Text(l10n.gallery),
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                      ),
                     ),
                   ),
-                  SizedBox(width: 16.w),
+                  SizedBox(width: AppDimensions.md.w),
                   Expanded(
-                    child: OutlinedButton.icon(
+                    child: AppButton(
+                      label: l10n.camera,
+                      icon: Iconsax.camera,
+                      style: AppButtonStyle.outline,
                       onPressed: () async {
                         final l10nCapture = AppLocalizations.of(context)!;
                         try {
@@ -326,115 +416,16 @@ class _SingleImageScreenState extends ConsumerState<SingleImageScreen>
                           }
                         }
                       },
-                      icon: const Icon(Iconsax.camera),
-                      label: Text(l10n.camera),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                      ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 40.h),
+              SizedBox(height: 30.h),
               const NativeAdWidget(size: NativeAdSize.medium),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future<void> _saveToGallery(SingleImageState state) async {
-    final processedBytes = state.processedImageBytes;
-    final previewBytes = state.previewThumbnail ?? state.originalThumbnail;
-    if (processedBytes == null || previewBytes == null || !mounted) return;
-
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-
-    await AdManager().showInterstitialAd(onComplete: () async {
-      try {
-        if (!mounted) return;
-        final ok = await PermissionService.instance.ensurePhotosPermission(context);
-        if (!ok) return;
-
-        final timestampMs = DateTime.now().millisecondsSinceEpoch;
-        
-        final appDir = await getApplicationDocumentsDirectory();
-        final thumbRelativePath = 'history/thumb_$timestampMs.jpg';
-        final processedRelativePath = 'history/proc_$timestampMs.${state.settings.format.extension}';
-        
-        final thumbFile = File(p.join(appDir.path, thumbRelativePath));
-        final procFile = File(p.join(appDir.path, processedRelativePath));
-
-        await Directory(p.dirname(thumbFile.path)).create(recursive: true);
-        await procFile.writeAsBytes(processedBytes);
-        await thumbFile.writeAsBytes(previewBytes);
-
-        await Gal.putImage(procFile.path, album: 'Reducer');
-
-        final historyItem = HistoryItem(
-          id: const Uuid().v4(),
-          thumbnailPath: thumbRelativePath,
-          processedPaths: [processedRelativePath],
-          originalPath: state.originalFile?.path ?? '',
-          settings: state.settings,
-          timestamp: DateTime.now(),
-          originalSize: state.originalSize,
-          processedSize: processedBytes.length,
-        );
-        
-        await ref.read(historyControllerProvider.notifier).addItem(historyItem);
-
-        unawaited(ref.read(analyticsServiceProvider).logCompressionSuccess(
-          type: 'single',
-          originalSize: state.originalSize,
-          compressedSize: processedBytes.length,
-          imageCount: 1,
-        ));
-        unawaited(ref.read(reviewControllerProvider).recordSuccessfulSave());
-
-        if (mounted) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.compressionSuccess), backgroundColor: AppColors.success),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.failedToSave(e.toString())), backgroundColor: AppColors.error),
-          );
-        }
-      }
-    });
-  }
-
-  Future<void> _shareImage(SingleImageState state) async {
-    if (state.processedImageBytes == null || !mounted) return;
-    
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-
-    try {
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/share_${DateTime.now().millisecondsSinceEpoch}.${state.settings.format.extension}');
-      await file.writeAsBytes(state.processedImageBytes!);
-
-      if (mounted) {
-        await SharePlus.instance.share(
-          ShareParams(
-            files: [XFile(file.path)], 
-            text: l10n.shareWithReducer,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.failedToShare(e.toString())), backgroundColor: AppColors.error),
-        );
-      }
-    }
   }
 }

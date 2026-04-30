@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reducer/core/models/image_settings.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -56,7 +56,7 @@ class _CompressTabViewState extends State<CompressTabView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(AppDimensions.lg.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -83,7 +83,7 @@ class _CompressTabViewState extends State<CompressTabView> {
                     onChanged: (value) => _updateSettings(),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                SizedBox(width: AppDimensions.md.w),
                 Container(
                   padding: EdgeInsets.all(4.r),
                   decoration: BoxDecoration(
@@ -101,7 +101,7 @@ class _CompressTabViewState extends State<CompressTabView> {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppDimensions.xl.h),
           _buildCard(
             context,
             title: l10n.imageQuality.toUpperCase(),
@@ -157,15 +157,16 @@ class _CompressTabViewState extends State<CompressTabView> {
             letterSpacing: 1.2.w,
             fontWeight: FontWeight.w800,
             color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            fontSize: 11.sp,
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppDimensions.sm.h),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(AppDimensions.lg.r),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg.r),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1.r),
           ),
           child: child,
         ),
@@ -180,9 +181,9 @@ class _CompressTabViewState extends State<CompressTabView> {
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected ? (isDark ? Colors.white10 : Colors.white) : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
           boxShadow: isSelected && !isDark ? [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4.r, offset: Offset(0, 2.h))
           ] : null,
         ),
         child: Text(

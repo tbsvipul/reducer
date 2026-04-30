@@ -7,7 +7,7 @@ part of 'bulk_image_controller.dart';
 // **************************************************************************
 
 String _$bulkImageControllerHash() =>
-    r'03cefb70eaafaa667939dfae7032a7ba9fb40b55';
+    r'dcb2d048ba3bcc36ef425fc381dddfac65c7aed7';
 
 /// See also [BulkImageController].
 @ProviderFor(BulkImageController)
@@ -25,4 +25,3 @@ final bulkImageControllerProvider =
 typedef _$BulkImageController = AutoDisposeNotifier<BulkImageState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
-

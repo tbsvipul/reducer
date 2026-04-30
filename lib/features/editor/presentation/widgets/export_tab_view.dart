@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reducer/core/models/image_settings.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
-import 'package:reducer/shared/widgets/app_button.dart';
+import 'package:reducer/common/widgets/app_button.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:reducer/core/utils/file_utils.dart';
+
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ExportTabView extends StatelessWidget {
   final Uint8List? processedImageBytes;
@@ -37,7 +39,7 @@ class ExportTabView extends StatelessWidget {
     final savedPercent = originalSize > 0 ? ((originalSize - processedSize) / originalSize * 100).toInt() : 0;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(AppDimensions.lg.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,9 +55,9 @@ class ExportTabView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppDimensions.lg.h),
           Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppDimensions.lg),
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
               borderRadius: BorderRadius.circular(16),
@@ -70,7 +72,7 @@ class ExportTabView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl2),
+          SizedBox(height: AppDimensions.xl2.h),
           
           if (processedImageBytes != null) ...[
             Row(
@@ -83,16 +85,16 @@ class ExportTabView extends StatelessWidget {
                     isFullWidth: true,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                SizedBox(width: AppDimensions.md.w),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onShare,
-                    icon: const Icon(Iconsax.share),
-                    label: Text(l10n.share),
+                    icon: Icon(Iconsax.share, size: 20.r),
+                    label: Text(l10n.share, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      side: const BorderSide(color: AppColors.primary),
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                      side: BorderSide(color: AppColors.primary, width: 1.r),
                       foregroundColor: AppColors.primary,
                     ),
                   ),
@@ -101,26 +103,26 @@ class ExportTabView extends StatelessWidget {
             ),
           ] else ...[
             Container(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+              padding: EdgeInsets.all(AppDimensions.xl.r),
               width: double.infinity,
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.r),
               ),
               child: Column(
                 children: [
-                  const Icon(Iconsax.flash, color: AppColors.primary, size: 32),
-                  const SizedBox(height: 12),
+                  Icon(Iconsax.flash, color: AppColors.primary, size: 32.r),
+                  SizedBox(height: 12.h),
                   Text(
                     l10n.readyToExport,
-                    style: AppTextStyles.titleMedium(context).copyWith(fontWeight: FontWeight.bold),
+                    style: AppTextStyles.titleMedium(context).copyWith(fontWeight: FontWeight.bold, fontSize: 16.sp),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     l10n.applyChangesMessage,
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+                    style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant, fontSize: 11.sp),
                   ),
                 ],
               ),
@@ -140,11 +142,16 @@ class ExportTabView extends StatelessWidget {
           style: AppTextStyles.titleLarge(context).copyWith(
             fontWeight: FontWeight.w800,
             color: color ?? (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
+            fontSize: 20.sp,
           ),
         ),
         Text(
           label,
-          style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant, letterSpacing: 1),
+          style: AppTextStyles.labelSmall(context).copyWith(
+            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant, 
+            letterSpacing: 1.w,
+            fontSize: 10.sp,
+          ),
         ),
       ],
     );
@@ -153,16 +160,17 @@ class ExportTabView extends StatelessWidget {
   Widget _buildStatRow(BuildContext context, String label, String value, {Color? valueColor, bool isLast = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant)),
+          Text(label, style: TextStyle(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant, fontSize: 13.sp)),
           Text(
             value,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: valueColor ?? (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
+              fontSize: 13.sp,
             ),
           ),
         ],
@@ -178,18 +186,19 @@ class ExportTabView extends StatelessWidget {
         Text(
           title,
           style: AppTextStyles.labelSmall(context).copyWith(
-            letterSpacing: 1.2,
+            letterSpacing: 1.2.w,
             fontWeight: FontWeight.w800,
             color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            fontSize: 11.sp,
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppDimensions.sm.h),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(AppDimensions.lg.r),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1),
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1.r),
           ),
           child: child,
         ),

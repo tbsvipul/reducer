@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
-import 'app_spacing.dart';
+import 'app_dimensions.dart';
 
 /// Legacy compatibility shim — all screens that still import DesignTokens
 /// will automatically use the new palette. Prefer AppColors in new code.
@@ -23,8 +23,8 @@ class DesignTokens {
   static List<BoxShadow> get neumorphicShadowDark => AppColors.cardShadowDark;
 
   // ── Border Radius ─────────────────────────────────────────────────────────────
-  static double get radiusSmall => AppSpacing.radiusSm;
-  static double get radiusMedium => AppSpacing.radiusLg;
-  static double get radiusLarge => AppSpacing.radiusXl2;
+  static double get radiusSmall => AppDimensions.radiusSm;
+  static double get radiusMedium => AppDimensions.radiusLg;
+  static double get radiusLarge => AppDimensions.radiusXl2;
 }
 

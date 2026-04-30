@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/core/theme/app_theme.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ToolCard extends StatelessWidget {
   final String title;
@@ -27,27 +28,27 @@ class ToolCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXl.r),
         child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(AppDimensions.lg.r),
           decoration: AppTheme.cardDecoration(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
+                padding: EdgeInsets.all(AppDimensions.sm.r),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: isDark ? 0.2 : 0.1),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
                 ),
-                child: Icon(icon, color: color, size: AppSpacing.iconLg),
+                child: Icon(icon, color: color, size: AppDimensions.iconLg.r),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppDimensions.lg.h),
               Text(
                 title,
                 style: AppTextStyles.titleMedium(context),
               ),
-              const SizedBox(height: AppSpacing.xs2),
+              SizedBox(height: AppDimensions.xs2.h),
               Text(
                 subtitle,
                 style: AppTextStyles.bodySmall(context),

@@ -23,7 +23,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/force_update_service.dart';
 import 'package:reducer/core/services/remote_config_service.dart';
 import 'firebase_options.dart';
-import 'package:google_sign_in/google_sign_in.dart' as google_auth;
+
 void main() async {
   // 1. Core Framework Setup
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -101,8 +101,7 @@ void main() async {
 /// Services that can initialize in the background without blocking the UI thread.
 Future<void> _initializeSecondaryServices() async {
   try {
-    // google_auth v7.x.x initialization is non-blocking but essential for Auth flows
-    unawaited(google_auth.GoogleSignIn.instance.initialize());
+
     
     // Notifications init - Await to ensure channels are ready
     await NotificationService().init();

@@ -4,10 +4,13 @@ import 'package:iconsax/iconsax.dart';
 import 'package:reducer/core/models/image_settings.dart';
 import 'package:reducer/core/theme/app_colors.dart';
 import 'package:reducer/core/theme/app_theme.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
+import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/core/utils/target_dimension_calculator.dart';
-import 'package:reducer/shared/widgets/app_button.dart';
+import 'package:reducer/common/widgets/app_button.dart';
+import 'package:reducer/l10n/app_localizations.dart';
 
-import 'package:reducer/shared/presentation/widgets/ads/native_ad_widget.dart';
+import 'package:reducer/common/presentation/widgets/ads/native_ad_widget.dart';
 
 class ExportTabContent extends StatefulWidget {
   final Uint8List? processedImageBytes;
@@ -48,26 +51,37 @@ class _ExportTabContentState extends State<ExportTabContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (widget.processedImageBytes == null) {
-      return const Center(
+      return Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Iconsax.info_circle, size: 64, color: Colors.grey),
-              SizedBox(height: 16),
-              Text(
-                'No processed image yet',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
+              Icon(
+                Iconsax.info_circle,
+                size: AppDimensions.iconXl4,
+                color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: AppDimensions.lg),
               Text(
-                'Go to Settings tab and click "Process Image"',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                'No processed image yet', // TODO: Add to l10n
+                style: AppTextStyles.titleMedium(context).copyWith(
+                  color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                ),
               ),
-              SizedBox(height: 32),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+              const SizedBox(height: AppDimensions.xs),
+              Text(
+                'Go to Settings tab and click "Process Image"', // TODO: Add to l10n
+                style: AppTextStyles.bodySmall(context).copyWith(
+                  color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: AppDimensions.xl2),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding),
                 child: NativeAdWidget(size: NativeAdSize.medium),
               ),
             ],
@@ -77,12 +91,12 @@ class _ExportTabContentState extends State<ExportTabContent> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(AppDimensions.pagePadding),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(AppDimensions.md),
             decoration: AppTheme.cardDecoration(context),
             child: Column(
               children: [
@@ -93,8 +107,7 @@ class _ExportTabContentState extends State<ExportTabContent> {
                       _showBeforeImage
                           ? 'Before (Original)'
                           : 'After (Processed)',
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: AppTextStyles.titleMedium(context).copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -103,22 +116,26 @@ class _ExportTabContentState extends State<ExportTabContent> {
                           setState(() => _showBeforeImage = !_showBeforeImage),
                       icon: Icon(
                         _showBeforeImage ? Iconsax.eye : Iconsax.eye_slash,
-                        size: 18,
+                        size: AppDimensions.iconSm,
                       ),
                       label: Text(
                         _showBeforeImage ? 'Show After' : 'Show Before',
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.onPrimary,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                          horizontal: AppDimensions.lg,
+                          vertical: AppDimensions.md,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                         ),
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: AppDimensions.md),
                 Stack(
                   alignment: Alignment.center,
                   children: [
@@ -132,7 +149,7 @@ class _ExportTabContentState extends State<ExportTabContent> {
                           setState(() => _showBeforeImage = false),
                       child: RepaintBoundary(
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                           child: Image.memory(
                             _showBeforeImage
                                 ? (widget.originalThumbnail ??
@@ -151,30 +168,29 @@ class _ExportTabContentState extends State<ExportTabContent> {
                     ),
                     if (!_showBeforeImage)
                       Positioned(
-                        bottom: 10,
+                        bottom: AppDimensions.md,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                            horizontal: AppDimensions.md,
+                            vertical: AppDimensions.xs,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.black.withValues(alpha: 0.54),
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
+                              const Icon(
                                 Iconsax.finger_scan,
                                 color: Colors.white,
-                                size: 14,
+                                size: AppDimensions.iconSm,
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: AppDimensions.sm),
                               Text(
                                 'Hold image to compare',
-                                style: TextStyle(
+                                style: AppTextStyles.labelSmall(context).copyWith(
                                   color: Colors.white,
-                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -183,49 +199,55 @@ class _ExportTabContentState extends State<ExportTabContent> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 5),
-                const Text(
+                const SizedBox(height: AppDimensions.md),
+                Text(
                   'Ready to Export!',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: AppTextStyles.headlineSmall(context).copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppDimensions.md),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppDimensions.lg),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                   ),
                   child: Column(
                     children: [
-                      _exportInfoRow('Format', widget.settings.format.name),
-                      const SizedBox(height: 8),
+                      _exportInfoRow(context, 'Format', widget.settings.format.name),
+                      const SizedBox(height: AppDimensions.sm),
                       _exportInfoRow(
+                        context,
                         'Quality',
                         '${widget.settings.quality.toInt()}%',
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppDimensions.sm),
                       _exportInfoRow(
+                        context,
                         'Resolution',
                         '${_selectedDimensions.width} x ${_selectedDimensions.height}',
                         valueColor: AppColors.primary,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppDimensions.sm),
                       _exportInfoRow(
+                        context,
                         'File Size',
                         _formatFileSize(widget.processedImageBytes!.length),
                         valueColor:
                             widget.processedImageBytes!.length <
                                 widget.originalSize
-                            ? Colors.green
+                            ? AppColors.success
                             : AppColors.primary,
                       ),
                       if (widget.processedImageBytes!.length <
                           widget.originalSize) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppDimensions.sm),
                         _exportInfoRow(
+                          context,
                           'Size Reduced',
                           '${((widget.originalSize - widget.processedImageBytes!.length) / widget.originalSize * 100).toStringAsFixed(1)}%',
-                          valueColor: Colors.green,
+                          valueColor: AppColors.success,
                         ),
                       ],
                     ],
@@ -234,27 +256,25 @@ class _ExportTabContentState extends State<ExportTabContent> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppDimensions.xl),
           Row(
             children: [
               Expanded(
                 child: AppButton(
-                  label: 'Save to Gallery',
+                  label: l10n.saveToGallery,
                   icon: Iconsax.save_2,
                   onPressed: widget.onSave,
                   isFullWidth: true,
                 ),
-
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppDimensions.lg),
               Expanded(
                 child: AppButton(
-                  label: 'Share',
+                  label: l10n.share,
                   icon: Iconsax.share,
                   onPressed: widget.onShare,
                   isFullWidth: true,
                 ),
-
               ),
             ],
           ),
@@ -263,14 +283,23 @@ class _ExportTabContentState extends State<ExportTabContent> {
     );
   }
 
-  Widget _exportInfoRow(String label, String value, {Color? valueColor}) {
+  Widget _exportInfoRow(BuildContext context, String label, String value, {Color? valueColor}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey)),
+        Text(
+          label,
+          style: AppTextStyles.bodyMedium(context).copyWith(
+            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+          ),
+        ),
         Text(
           value,
-          style: TextStyle(fontWeight: FontWeight.bold, color: valueColor),
+          style: AppTextStyles.bodyMedium(context).copyWith(
+            fontWeight: FontWeight.bold,
+            color: valueColor,
+          ),
         ),
       ],
     );

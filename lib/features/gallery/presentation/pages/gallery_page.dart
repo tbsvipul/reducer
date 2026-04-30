@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/l10n/app_localizations.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
-import 'package:reducer/features/gallery/presentation/controllers/history_controller.dart';
-import 'package:reducer/features/gallery/data/models/history_item.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:reducer/shared/presentation/widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:reducer/features/gallery/presentation/widgets/history_card.dart';
-import 'package:reducer/features/gallery/presentation/widgets/gallery_empty_state.dart';
-import 'package:reducer/features/gallery/presentation/widgets/gallery_error_state.dart';
-import 'package:reducer/features/gallery/presentation/widgets/clear_history_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:reducer/core/theme/app_colors.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
+import 'package:reducer/l10n/app_localizations.dart';
+import 'package:reducer/features/gallery/presentation/controllers/history_controller.dart';
+import 'package:reducer/features/gallery/data/models/history_item.dart';
+import 'package:reducer/common/widgets/app_loader.dart';
+import 'package:reducer/common/widgets/app_empty_state.dart';
+import 'package:reducer/common/widgets/app_error_widget.dart';
+import 'package:reducer/common/widgets/app_dialog.dart';
+import 'package:reducer/common/widgets/app_snackbar.dart';
+import 'package:reducer/common/presentation/widgets/ads/banner_ad_widget.dart';
+import 'package:reducer/features/gallery/presentation/widgets/history_card.dart';
+
+/// Screen for displaying image processing history.
 class GalleryScreen extends ConsumerStatefulWidget {
   const GalleryScreen({super.key});
 
@@ -34,11 +38,35 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
   Future<void> _initAppDir() async {
     final dir = await getApplicationDocumentsDirectory();
     if (mounted) {
-      setState(() {
-        _appDocDir = dir.path;
-      });
+      setState(() => _appDocDir = dir.path);
     }
   }
+
+  // ─────────────────────────────────────────────
+  // SECTION: Actions
+  // ─────────────────────────────────────────────
+
+  Future<void> _removeItem(HistoryItem item, AppLocalizations l10n) async {
+    await ref.read(historyControllerProvider.notifier).removeItem(item.id);
+    if (!mounted) return;
+    AppSnackbar.show(context, l10n.itemRemoved);
+  }
+
+  void _clearHistory(AppLocalizations l10n) {
+    AppDialog.show(
+      context,
+      title: l10n.clearHistoryTitle,
+      message: l10n.clearHistoryMessage,
+      confirmLabel: l10n.clear,
+      cancelLabel: l10n.cancel,
+      type: AppDialogType.error,
+      onConfirm: () => ref.read(historyControllerProvider.notifier).clearAll(),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // SECTION: Build
+  // ─────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -52,53 +80,30 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
           const BannerAdWidget(),
           Expanded(
             child: historyAsync.when(
-               loading: () => Center(child: CircularProgressIndicator(strokeWidth: 2.r)),
-              error: (error, stackTrace) => GalleryErrorState(
-                error: error,
-                onRetry: () async {
-                  await ref.read(historyControllerProvider.notifier).loadHistory();
-                },
+              loading: () => const AppLoader(message: 'Loading history...'),
+              error: (error, stack) => AppErrorWidget(
+                message: 'Error loading history: $error',
+                onRetry: () => ref.read(historyControllerProvider.notifier).loadHistory(),
               ),
               data: (history) {
-                if (history.items.isEmpty) return const GalleryEmptyState();
+                if (history.items.isEmpty) {
+                  return AppEmptyState(
+                    title: l10n.galleryEmpty,
+                    subtitle: l10n.galleryEmptyDescription,
+                    icon: Iconsax.document_text,
+                  );
+                }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  padding: EdgeInsets.all(AppDimensions.pagePadding.r),
                   itemCount: history.items.length,
                   itemBuilder: (context, index) {
                     final item = history.items[index];
-                    return Dismissible(
-                      key: Key(item.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: AppSpacing.xl),
-                        margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                        decoration: BoxDecoration(
-                          color: AppColors.error,
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusLg),
-                        ),
-                        child:
-                            Icon(Iconsax.trash, color: Colors.white, size: 24.r),
-                      ),
-                      onDismissed: (_) async {
-                        await ref.read(historyControllerProvider.notifier).removeItem(item.id);
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.itemRemoved),
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor: AppColors.darkSurface,
-                          ),
-                        );
-                      },
-                      child: HistoryCard(item: item, appDocDir: _appDocDir)
-                          .animate()
-                          .fadeIn(
-                            delay: Duration(milliseconds: 50 * index),
-                          )
-                          .slideX(),
+                    return _HistoryItemWrapper(
+                      item: item,
+                      index: index,
+                      appDocDir: _appDocDir,
+                      onDismiss: () => _removeItem(item, l10n),
                     );
                   },
                 );
@@ -111,17 +116,55 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
           ? FloatingActionButton(
               mini: true,
               backgroundColor: AppColors.error,
-              onPressed: () => showDialog(
-                context: context,
-                builder: (context) => ClearHistoryDialog(
-                  onClear: () async {
-                    await ref.read(historyControllerProvider.notifier).clearAll();
-                  },
-                ),
-              ),
-              child: Icon(Iconsax.trash, color: Colors.white, size: 20.r),
+              onPressed: () => _clearHistory(l10n),
+              child: Icon(Iconsax.trash, color: Colors.white, size: AppDimensions.iconSm.r),
             )
           : null,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// SECTION: Sub-widgets
+// ─────────────────────────────────────────────
+
+class _HistoryItemWrapper extends StatelessWidget {
+  const _HistoryItemWrapper({
+    required this.item,
+    required this.index,
+    required this.appDocDir,
+    required this.onDismiss,
+  });
+
+  final HistoryItem item;
+  final int index;
+  final String? appDocDir;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: Key(item.id),
+      direction: DismissDirection.endToStart,
+      background: _buildDismissBackground(),
+      onDismissed: (_) => onDismiss(),
+      child: HistoryCard(item: item, appDocDir: appDocDir)
+          .animate()
+          .fadeIn(delay: Duration(milliseconds: 50 * index))
+          .slideX(),
+    );
+  }
+
+  Widget _buildDismissBackground() {
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: EdgeInsets.only(right: AppDimensions.xl.w),
+      margin: EdgeInsets.only(bottom: AppDimensions.md.h),
+      decoration: BoxDecoration(
+        color: AppColors.error,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg.r),
+      ),
+      child: Icon(Iconsax.trash, color: Colors.white, size: AppDimensions.iconMd.r),
     );
   }
 }

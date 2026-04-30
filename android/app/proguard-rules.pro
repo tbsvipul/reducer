@@ -8,6 +8,13 @@
 # Firebase ProGuard rules
 -keep class com.google.firebase.** { *; }
 
+# Google Sign-In ProGuard rules
+-keep class com.google.android.gms.auth.** { *; }
+-keep class com.google.android.gms.auth.api.identity.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+-keep class com.google.android.gms.common.api.** { *; }
+-keep class com.google.android.gms.tasks.** { *; }
+
 # General Flutter / Dart ProGuard rules
 -keep class io.flutter.app.** { *; }
 -keep class io.flutter.plugin.** { *; }
@@ -17,7 +24,6 @@
 -keep class io.flutter.embedding.engine.plugins.** { *; }
 -keep class io.flutter.plugins.** { *; }
 -keep class com.google.android.gms.signin.** { *; }
--keep class com.google.android.gms.common.** { *; }
 
 # Obfuscation settings
 -printmapping mapping.txt

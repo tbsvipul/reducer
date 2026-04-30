@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
 import 'package:reducer/features/premium/presentation/widgets/package_card.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -23,7 +23,7 @@ class HorizontalPackageSelector extends ConsumerWidget {
           children: [
             const Expanded(child: Divider(height: 1, color: Colors.black12)),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.sm),
               child: Text(
                 l10n.selectPlan,
                 style: TextStyle(

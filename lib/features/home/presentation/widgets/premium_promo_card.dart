@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 
@@ -14,7 +14,7 @@ class PremiumPromoCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppDimensions.xl),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -25,7 +25,7 @@ class PremiumPromoCard extends StatelessWidget {
             Color(0xFFEC4899), // Pink
           ],
         ),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFA855F7).withValues(alpha: 0.3),
@@ -56,7 +56,7 @@ class PremiumPromoCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    padding: const EdgeInsets.all(AppDimensions.sm),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
@@ -71,16 +71,16 @@ class PremiumPromoCard extends StatelessWidget {
                   .shimmer(delay: 2.seconds, duration: 1500.ms)
                   .shake(hz: 4, curve: Curves.easeInOutCubic),
                   
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppDimensions.md),
                   
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xs2,
+                      horizontal: AppDimensions.sm,
+                      vertical: AppDimensions.xs2,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
                     ),
                     child: Text(
                       l10n.premium.toUpperCase(),
@@ -94,7 +94,7 @@ class PremiumPromoCard extends StatelessWidget {
                 ],
               ),
           
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppDimensions.lg),
               
               Text(
                 l10n.unlockAllProFeatures,
@@ -105,7 +105,7 @@ class PremiumPromoCard extends StatelessWidget {
                 ),
               ),
               
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppDimensions.xs),
               
               Text(
                 l10n.promoSubtitle,
@@ -114,7 +114,7 @@ class PremiumPromoCard extends StatelessWidget {
                 ),
               ),
               
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppDimensions.xl),
               
               SizedBox(
                 width: double.infinity,
@@ -153,9 +153,9 @@ class ElevatedBtn extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFFA855F7),
         elevation: 0,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(vertical: AppDimensions.md),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         ),
       ),
       child: Text(

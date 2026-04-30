@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 
 class BestValueBadge extends StatelessWidget {
   const BestValueBadge({super.key});
@@ -8,10 +8,10 @@ class BestValueBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 6),
       decoration: BoxDecoration(
         gradient: const LinearGradient(colors: AppColors.premiumGradient),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
       ),
       child: const Text(
         "BEST VALUE",

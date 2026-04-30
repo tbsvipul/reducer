@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:reducer/l10n/app_localizations.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reducer/features/premium/presentation/widgets/premium_login_required_block.dart';
+import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
 
 class SubscribeButton extends ConsumerWidget {
   const SubscribeButton({super.key});
@@ -13,7 +13,7 @@ class SubscribeButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(premiumControllerProvider);
-    final authState = ref.watch(authProvider).value;
+    final authState = ref.watch(authStateChangesProvider).value;
     final notifier = ref.read(premiumControllerProvider.notifier);
     final l10n = AppLocalizations.of(context)!;
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reducer/core/models/image_settings.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 
@@ -26,7 +26,7 @@ class ResizeTabView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(AppDimensions.lg.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -39,13 +39,13 @@ class ResizeTabView extends StatelessWidget {
                   children: [
                     Expanded(child: _buildDimensionInput(context, l10n.width.toUpperCase(), settings.width?.toInt() ?? originalWidth)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.sm),
                       child: Icon(Icons.close, size: 16.r, color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
                     ),
                     Expanded(child: _buildDimensionInput(context, l10n.height.toUpperCase(), settings.height?.toInt() ?? originalHeight)),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: AppDimensions.lg.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -66,7 +66,7 @@ class ResizeTabView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppDimensions.xl.h),
           _buildCard(
             context,
             title: l10n.transform.toUpperCase(),
@@ -141,15 +141,16 @@ class ResizeTabView extends StatelessWidget {
             letterSpacing: 1.2.w,
             fontWeight: FontWeight.w800,
             color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            fontSize: 11.sp,
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppDimensions.sm.h),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(AppDimensions.lg.r),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1.r),
           ),
           child: child,
         ),
