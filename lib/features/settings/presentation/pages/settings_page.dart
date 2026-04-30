@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
@@ -11,13 +12,10 @@ import 'package:reducer/core/theme/app_spacing.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/features/settings/presentation/widgets/settings_tile.dart';
 import 'package:reducer/features/settings/presentation/widgets/settings_section_header.dart';
+import 'package:reducer/features/settings/presentation/widgets/review_card.dart';
 import 'package:reducer/l10n/app_localizations.dart';
-
-
 import 'package:reducer/core/services/remote_config_service.dart';
-import 'package:reducer/core/services/auth_service.dart';
-
-import 'package:reducer/core/services/review_service.dart';
+import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -31,10 +29,6 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _requestReview() async {
-    await ReviewService().openStoreListing();
-  }
-
   void _shareApp(BuildContext context) {
     SharePlus.instance.share(
       ShareParams(
@@ -44,10 +38,24 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showDeleteAccountDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showDeleteAccountDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final user = ref.read(authServiceProvider).currentUser;
-    final userEmail = user?.email ?? 'N/A';
-    final userId = user?.uid ?? 'N/A';
+    if (user == null || user.isAnonymous) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please login before requesting account deletion.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    final userEmail = user.email ?? '';
+    final userId = user.uid;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -72,18 +80,38 @@ class SettingsScreen extends ConsumerWidget {
     );
 
     if (confirmed == true) {
-      final subject = Uri.encodeComponent('Account Deletion Request - Reducer');
-      final body = Uri.encodeComponent(
-        'Hello,\n\n'
-        'I would like to request the deletion of my Reducer account.\n\n'
-        'Account Details:\n'
-        'User ID: $userId\n'
-        'Email: $userEmail\n\n'
-        'Please delete my account and all associated data.\n\n'
-        'Thank you.',
-      );
-      final mailtoUrl = 'mailto:tarurinfotech@gmail.com?subject=$subject&body=$body';
-      await _launchUrl(mailtoUrl);
+      try {
+        if (context.mounted) {
+          unawaited(
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) =>
+                  const Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+
+        await ref
+            .read(userServiceProvider)
+            .requestAccountDeletion(uid: userId, email: userEmail);
+
+        if (context.mounted) {
+          Navigator.pop(context); // Pop loading
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Deletion request sent successfully.'),
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          Navigator.pop(context); // Pop loading
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to send request: $e')));
+        }
+      }
     }
   }
 
@@ -95,7 +123,12 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.settings, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20)),
+        title: Text(
+          l10n.settings,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontSize: 20),
+        ),
         elevation: 0,
         centerTitle: false,
       ),
@@ -130,6 +163,9 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xl),
           ],
 
+          const ReviewCard(),
+          const SizedBox(height: AppSpacing.xl),
+
           // ── Support & Feedback ──────────────────────────────────────────────
           SettingsSectionHeader(title: l10n.supportAndFeedback),
 
@@ -138,24 +174,17 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 SettingsTile(
-
-                  icon: Iconsax.star,
-                  title: l10n.rateOnPlayStore,
-                  onTap: () => _requestReview(),
-                ),
-                const Divider(),
-                SettingsTile(
-
                   icon: Iconsax.share,
                   title: l10n.shareReducer,
                   onTap: () => _shareApp(context),
                 ),
                 const Divider(),
                 SettingsTile(
-
                   icon: Iconsax.message_question,
                   title: l10n.contactSupport,
-                  onTap: () => _launchUrl('mailto:${RemoteConfigService().supportEmail}?subject=Reducer%20Support'),
+                  onTap: () => _launchUrl(
+                    'https://tarurinfotech.base44.app/contact/product?app=reducer',
+                  ),
                 ),
               ],
             ),
@@ -171,7 +200,8 @@ class SettingsScreen extends ConsumerWidget {
                 SettingsTile(
                   icon: Iconsax.language_square,
                   title: l10n.selectLanguage,
-                  onTap: () => context.push('/language-selection?fromSettings=true'),
+                  onTap: () =>
+                      context.push('/language-selection?fromSettings=true'),
                 ),
               ],
             ),
@@ -185,7 +215,7 @@ class SettingsScreen extends ConsumerWidget {
               clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
-                   SettingsTile(
+                  SettingsTile(
                     icon: Iconsax.user_remove,
                     title: 'Delete Account',
                     onTap: () => _showDeleteAccountDialog(context, ref),
@@ -206,7 +236,9 @@ class SettingsScreen extends ConsumerWidget {
                 SettingsTile(
                   icon: Iconsax.shield_tick,
                   title: l10n.privacyPolicy,
-                  onTap: () => _launchUrl('https://tarurinfotech.base44.app/privacy/reducer'),
+                  onTap: () => _launchUrl(
+                    'https://tarurinfotech.base44.app/privacy/reducer',
+                  ),
                 ),
                 const Divider(),
                 FutureBuilder<PackageInfo>(
@@ -217,7 +249,14 @@ class SettingsScreen extends ConsumerWidget {
                     return ListTile(
                       leading: const Icon(Iconsax.info_circle),
                       title: Text(l10n.version),
-                      trailing: Text('$version ($build)', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant)),
+                      trailing: Text(
+                        '$version ($build)',
+                        style: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.onDarkSurfaceVariant
+                              : AppColors.onLightSurfaceVariant,
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -229,7 +268,11 @@ class SettingsScreen extends ConsumerWidget {
           Center(
             child: Text(
               l10n.madeWithHeart,
-              style: AppTextStyles.bodySmall(context).copyWith(color: Theme.of(context).brightness == Brightness.dark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+              style: AppTextStyles.bodySmall(context).copyWith(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.onDarkSurfaceVariant
+                    : AppColors.onLightSurfaceVariant,
+              ),
             ),
           ),
         ],
@@ -237,5 +280,3 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
-
-

@@ -103,7 +103,7 @@ class PremiumScreen extends ConsumerWidget {
                                     context.go('/');
                                   }
                                 },
-                                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+                                icon: const Icon(Icons.close, color: Colors.black87),
                                 style: IconButton.styleFrom(
                                   backgroundColor: Colors.white.withValues(alpha: 0.5),
                                   padding: const EdgeInsets.all(12),

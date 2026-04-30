@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reducer/features/auth/presentation/pages/login_screen.dart';
 import 'package:reducer/features/auth/presentation/pages/register_screen.dart';
 import 'package:reducer/features/auth/presentation/pages/profile_screen.dart';
+import 'package:reducer/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:reducer/core/routes/router_notifier.dart';
 import 'package:reducer/features/splash/presentation/pages/splash_page.dart';
 import 'package:reducer/features/home/presentation/pages/main_screen.dart';
@@ -133,6 +134,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => RegisterScreen(redirectTo: state.uri.queryParameters['redirect']),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: '/language-selection',

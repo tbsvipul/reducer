@@ -1,1 +1,41 @@
-{"remoteconfig":{"template":"google-services.json"},"flutter":{"platforms":{"android":{"default":{"projectId":"reducer-3e8dc","appId":"1:690861600563:android:5ff13dd72cabf74b225846","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"reducer-3e8dc","configurations":{"android":"1:690861600563:android:5ff13dd72cabf74b225846","ios":"1:690861600563:ios:1b6b14877f4b0114225846","macos":"1:690861600563:ios:1b6b14877f4b0114225846","web":"1:690861600563:web:8de20a0fb0839651225846","windows":"1:690861600563:web:67c6e268a486c7ea225846"}}}}}}
+{
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default"
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "remoteconfig": {
+    "template": "firebase_remote_config_values.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "reducer-3e8dc",
+          "appId": "1:690861600563:android:5ff13dd72cabf74b225846",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "reducer-3e8dc",
+          "configurations": {
+            "android": "1:690861600563:android:5ff13dd72cabf74b225846",
+            "ios": "1:690861600563:ios:1b6b14877f4b0114225846",
+            "macos": "1:690861600563:ios:1b6b14877f4b0114225846",
+            "web": "1:690861600563:web:8de20a0fb0839651225846",
+            "windows": "1:690861600563:web:67c6e268a486c7ea225846"
+          }
+        }
+      }
+    }
+  }
+}

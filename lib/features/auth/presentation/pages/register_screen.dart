@@ -45,7 +45,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.registrationFailed(e.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.registrationFailed(e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -53,12 +57,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _googleSignIn() async {
     try {
-      await ref.read(authControllerProvider.notifier).signInWithGoogle();
-      if (mounted) context.go(_postAuthRoute());
+      final signedIn = await ref
+          .read(authControllerProvider.notifier)
+          .signInWithGoogle();
+      if (signedIn && mounted) {
+        context.go(_postAuthRoute());
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.googleSignInFailed(e.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.googleSignInFailed(e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -67,10 +79,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   String _postAuthRoute() {
     final target = widget.redirectTo;
     if (target == null || target.isEmpty) return '/';
-    
+
     // Security Fix: Ensure it's a strictly internal path and avoid protocol-relative URLs (//)
     if (!target.startsWith('/') || target.startsWith('//')) return '/';
-    
+
     // Avoid redirect loops
     if (target == '/login' || target == '/register' || target == '/splash') {
       return '/';
@@ -189,7 +201,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           return AppLocalizations.of(context)!.pleaseEnterEmail;
                         }
                         if (!_emailRegex.hasMatch(value.trim())) {
-                          return AppLocalizations.of(context)!.pleaseEnterValidEmail;
+                          return AppLocalizations.of(
+                            context,
+                          )!.pleaseEnterValidEmail;
                         }
                         return null;
                       },
@@ -217,13 +231,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(context)!.pleaseEnterPassword;
+                          return AppLocalizations.of(
+                            context,
+                          )!.pleaseEnterPassword;
                         }
                         if (value.length < 8) {
-                          return AppLocalizations.of(context)!.passwordLengthErrorRegister;
+                          return AppLocalizations.of(
+                            context,
+                          )!.passwordLengthErrorRegister;
                         }
                         if (!value.contains(RegExp(r'[^a-zA-Z]'))) {
-                          return AppLocalizations.of(context)!.passwordComplexityError;
+                          return AppLocalizations.of(
+                            context,
+                          )!.passwordComplexityError;
                         }
                         return null;
                       },
@@ -259,7 +279,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         Expanded(child: Divider(color: theme.dividerColor)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(AppLocalizations.of(context)!.or, style: theme.textTheme.bodySmall),
+                          child: Text(
+                            AppLocalizations.of(context)!.or,
+                            style: theme.textTheme.bodySmall,
+                          ),
                         ),
                         Expanded(child: Divider(color: theme.dividerColor)),
                       ],
@@ -281,7 +304,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           width: 18,
                         ),
                       ),
-                      label: Text(AppLocalizations.of(context)!.registerWithGoogle),
+                      label: Text(
+                        AppLocalizations.of(context)!.registerWithGoogle,
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -318,4 +343,3 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 }
-

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reducer/features/auth/data/services/app_auth_service.dart';
 import 'package:reducer/features/auth/data/services/cloudinary_service.dart';
@@ -30,9 +30,15 @@ final authStateProvider = authProvider;
 
 // User Data Provider (Firestore)
 final userProvider = StreamProvider<UserModel?>((ref) {
-  final authState = ref.watch(authProvider).value;
-  if (authState == null || authState.isAnonymous) return Stream.value(null);
-  return ref.watch(userServiceProvider).streamUser(authState.uid);
+  final authAsync = ref.watch(authProvider);
+  return authAsync.when(
+    data: (authState) {
+      if (authState == null || authState.isAnonymous) return Stream.value(null);
+      return ref.watch(userServiceProvider).streamUser(authState.uid);
+    },
+    loading: () => const Stream.empty(),
+    error: (e, s) => Stream.error(e, s),
+  );
 });
 
 // Auth Controller Provider
@@ -65,7 +71,9 @@ class AuthController extends StateNotifier<bool> {
           .fetchOffersAndCheckStatus();
 
       // Show welcome notification
-      debugPrint('[AuthController] Successful registration, triggering welcome notification');
+      debugPrint(
+        '[AuthController] Successful registration, triggering welcome notification',
+      );
       Future.delayed(const Duration(milliseconds: 500), () {
         NotificationService().showNotification(
           id: 1,
@@ -108,19 +116,18 @@ class AuthController extends StateNotifier<bool> {
   }
 
   /// Sign in with Google and create/update Firestore user document.
-  Future<void> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     state = true;
     try {
       final credential = await _ref
           .read(authServiceProvider)
           .signInWithGoogle();
-      
+
       // If credential is null, user cancelled the flow
       if (credential == null) {
-        state = false;
-        return;
+        return false;
       }
-      
+
       final user = credential.user;
       if (user == null) {
         throw 'Google Sign-In failed. Please try again.';
@@ -138,20 +145,24 @@ class AuthController extends StateNotifier<bool> {
 
       // Show welcome notification if it's a new registration via Google
       if (credential.additionalUserInfo?.isNewUser == true) {
-        debugPrint('[AuthController] New Google user registered, triggering welcome notification');
+        debugPrint(
+          '[AuthController] New Google user registered, triggering welcome notification',
+        );
         Future.delayed(const Duration(milliseconds: 500), () {
           NotificationService().showNotification(
             id: 1,
             title: 'Congratulations! 🎉',
-            body: 'Registration successful via Google! Start optimizing your gallery now.',
+            body:
+                'Registration successful via Google! Start optimizing your gallery now.',
           );
         });
       }
+      return true;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthError(e);
     } catch (e) {
       debugPrint('[AuthController] Google Sign-In error: $e');
-      throw 'Google Sign-In failed: ${e.toString()}';
+      throw 'Google Sign-In failed. Please try again.';
     } finally {
       state = false;
     }
@@ -200,6 +211,8 @@ class AuthController extends StateNotifier<bool> {
         return 'The email address is not valid.';
       case 'network-request-failed':
         return 'Network error. Please check your connection.';
+      case 'too-many-requests':
+        return 'Too many requests. Please try again later.';
       default:
         return e.message ?? 'Authentication error occurred.';
     }
@@ -211,7 +224,7 @@ class AuthController extends StateNotifier<bool> {
       final authService = _ref.read(authServiceProvider);
       await authService.signOut();
       await _ref.read(premiumControllerProvider.notifier).clearProStatus();
-      
+
       // Auto-re-sign-in anonymously to maintain a session for guest features
       await authService.signInAnonymously();
     } finally {
@@ -222,7 +235,7 @@ class AuthController extends StateNotifier<bool> {
   /// Sends a password reset email to the given address.
   Future<void> sendPasswordResetEmail(String email) async {
     if (email.trim().isEmpty) throw 'Please enter your email address.';
-    
+
     state = true;
     try {
       await _ref.read(authServiceProvider).sendPasswordResetEmail(email.trim());
@@ -294,4 +307,3 @@ class AuthController extends StateNotifier<bool> {
     }
   }
 }
-

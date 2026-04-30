@@ -15,6 +15,9 @@ class RouterNotifier extends ChangeNotifier {
   User? _user;
 
   RouterNotifier(this._ref) {
+    // Initialize with current state
+    _user = _ref.read(authProvider).value;
+
     // Listen to startup state and notify GoRouter
     _ref.listen<bool>(appStartupProvider, (previous, current) => notifyListeners());
 
@@ -80,6 +83,12 @@ class RouterNotifier extends ChangeNotifier {
         return requestedRedirect;
       }
       return '/';
+    }
+
+    // Redirect unauthenticated users from profile to login.
+    final isProfilePath = path == '/profile' || state.uri.path == '/profile';
+    if (isProfilePath && !isLoggedIn) {
+      return '/login?redirect=${Uri.encodeComponent('/profile')}';
     }
 
     return null;

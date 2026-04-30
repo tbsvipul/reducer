@@ -50,52 +50,94 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final authAsync = ref.watch(authProvider);
     final userAsync = ref.watch(userProvider);
     final isLoading = ref.watch(authControllerProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-      body: userAsync.when(
-        data: (user) {
-          if (user == null) return _buildLoggedOutState(context);
+      body: authAsync.when(
+        data: (auth) {
+          if (auth == null || auth.isAnonymous) {
+            // Trigger redirect if not already happening
+            Future.microtask(() {
+              if (context.mounted) {
+                context.go('/login?redirect=${Uri.encodeComponent('/profile')}');
+              }
+            });
+            return _buildLoadingState(context, 'Redirecting to login...');
+          }
 
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // 1. Immersive Header
-              _buildSliverHeader(context, ref, user, isDark, isLoading),
+          return userAsync.when(
+            data: (user) {
+              if (user == null) {
+                return _buildErrorState(context, 'Profile data not found. Please try logging in again.', ref);
+              }
 
-              // 2. Content Sections
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
-                  child: Column(
-                    children: [
-                      // Stats Highlighting
-                      _buildStatsGrid(context, user, isDark),
-                      const SizedBox(height: AppSpacing.xl2),
-
-                      // Subscription Status Card
-                      _buildSubscriptionStatusCard(context, user, isDark),
-                      const SizedBox(height: AppSpacing.xl2),
-
-                      // Settings & Preferences
-                      _buildSettingsSection(context, ref, isDark),
-                      const SizedBox(height: AppSpacing.xl2),
-
-                      // Danger Zone / Account Actions
-                      _buildAccountActions(context, ref, isDark),
-                      
-                      const SizedBox(height: 120), // Bottom padding
-                    ],
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildSliverHeader(context, ref, user, isDark, isLoading),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
+                      child: Column(
+                        children: [
+                          _buildStatsGrid(context, user, isDark),
+                          const SizedBox(height: AppSpacing.xl2),
+                          _buildSubscriptionStatusCard(context, user, isDark),
+                          const SizedBox(height: AppSpacing.xl2),
+                          _buildSettingsSection(context, ref, isDark),
+                          const SizedBox(height: AppSpacing.xl2),
+                          _buildAccountActions(context, ref, isDark),
+                          const SizedBox(height: 120),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
+            loading: () => _buildLoadingState(context, 'Loading profile details...'),
+            error: (e, s) => _buildErrorState(context, 'Error loading profile: $e', ref),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (e, s) => Center(child: Text('Error: $e')),
+        loading: () => _buildLoadingState(context, 'Checking authentication...'),
+        error: (e, s) => _buildErrorState(context, 'Authentication error: $e', ref),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(color: AppColors.primary),
+          const SizedBox(height: 20),
+          Text(message, style: AppTextStyles.bodyMedium(context).copyWith(color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, String message, WidgetRef ref) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Iconsax.danger, size: 64, color: AppColors.error),
+            const SizedBox(height: 16),
+            Text(message, textAlign: TextAlign.center, style: AppTextStyles.bodyLarge(context)),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+              child: const Text('Go to Login'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -419,42 +461,6 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoggedOutState(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Iconsax.user_tag, size: 100, color: AppColors.primary).animate().scale().fadeIn(),
-          const SizedBox(height: 32),
-          Text(
-            AppLocalizations.of(context)!.accountStudio,
-            style: AppTextStyles.headlineMedium(context).copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            AppLocalizations.of(context)!.signInRequiredDescription,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey, height: 1.5),
-          ),
-          const SizedBox(height: 48),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => context.go('/login?redirect=${Uri.encodeComponent('/profile')}'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              ),
-              child: Text(AppLocalizations.of(context)!.startSession, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _StatsTile extends StatelessWidget {

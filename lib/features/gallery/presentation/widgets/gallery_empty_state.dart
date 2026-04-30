@@ -1,49 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:go_router/go_router.dart';
-import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
-import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/l10n/app_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class GalleryEmptyState extends StatelessWidget {
   const GalleryEmptyState({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            decoration: const BoxDecoration(
-              color: AppColors.primaryContainer,
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: EdgeInsets.all(32.r),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(24.r),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Iconsax.document_text,
+                size: 64.r,
+                color: theme.colorScheme.primary.withValues(alpha: 0.5),
+              ),
             ),
-            child: const Icon(Iconsax.clock, size: AppSpacing.iconXl4, color: AppColors.primary),
-          ).animate().scale(delay: 200.ms, duration: 400.ms, curve: Curves.easeOutBack),
-          const SizedBox(height: AppSpacing.xl2),
-          Text(
-            AppLocalizations.of(context)!.noPastEdits,
-            style: AppTextStyles.titleLarge(context),
-          ).animate().fadeIn(delay: 400.ms),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            AppLocalizations.of(context)!.galleryEmptyDescription,
-            style: AppTextStyles.bodyMedium(context).copyWith(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ).animate().fadeIn(delay: 600.ms),
-          const SizedBox(height: AppSpacing.xl3),
-          FilledButton.icon(
-            onPressed: () => context.pop(),
-            icon: const Icon(Iconsax.add),
-            label: Text(AppLocalizations.of(context)!.startNewEdit),
-          ).animate().fadeIn(delay: 800.ms),
-        ],
+            SizedBox(height: 24.h),
+            Text(
+              // ignore: undefined_getter
+              (l10n as dynamic).noHistoryYet ?? 'No history yet',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              // ignore: undefined_getter
+              (l10n as dynamic).historyDescription ?? 'Your processed images will appear here.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-

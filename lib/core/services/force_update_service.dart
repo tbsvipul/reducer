@@ -31,13 +31,24 @@ class ForceUpdateService {
   }
 
   bool _isVersionOlder(String current, String target) {
-    final List<int> currentParts = current.split('.').map(int.parse).toList();
-    final List<int> targetParts = target.split('.').map(int.parse).toList();
+    List<int> parse(String v) => v
+        .split('.')
+        .map((e) => int.tryParse(e.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
+        .toList();
 
-    for (int i = 0; i < targetParts.length; i++) {
+    final List<int> currentParts = parse(current);
+    final List<int> targetParts = parse(target);
+
+    final maxLength = currentParts.length > targetParts.length
+        ? currentParts.length
+        : targetParts.length;
+
+    for (int i = 0; i < maxLength; i++) {
       final int currentPart = i < currentParts.length ? currentParts[i] : 0;
-      if (currentPart < targetParts[i]) return true;
-      if (currentPart > targetParts[i]) return false;
+      final int targetPart = i < targetParts.length ? targetParts[i] : 0;
+      
+      if (currentPart < targetPart) return true;
+      if (currentPart > targetPart) return false;
     }
     return false;
   }

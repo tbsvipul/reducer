@@ -2,35 +2,86 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper to check if a user is authenticated and is the owner
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function userWritableKeysOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'name',
+        'profileImageUrl',
+        'updatedAt'
+      ]);
+    }
+
+    function hasBlockedEntitlementKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'subscriptionStatus',
+        'productId',
+        'purchaseToken',
+        'orderId',
+        'subscriptionStartDate',
+        'subscriptionEndDate',
+        'expiryDate',
+        'autoRenewing',
+        'priceAmount',
+        'priceCurrencyCode',
+        'billingPeriod',
+        'basePlanId'
+      ]);
     }
 
     match /users/{userId} {
       allow read: if isOwner(userId);
-      
-      // Users can only create their own document with 'free' status
-      allow create: if isOwner(userId)
-        && request.resource.data.keys().hasOnly([
-          'uid', 'email', 'name', 'profileImageUrl',
-          'subscriptionStatus', 'aiImagesGenerated',
-          'createdAt', 'updatedAt'
-        ])
-        && request.resource.data.subscriptionStatus == 'free';
 
-      // Users can update profile fields but NEVER subscription/billing fields
-      allow update: if isOwner(userId)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-          'subscriptionStatus', 'productId', 'purchaseToken',
-          'orderId', 'subscriptionStartDate', 'subscriptionEndDate',
-          'expiryDate', 'autoRenewing', 'priceAmount',
-          'priceCurrencyCode', 'billingPeriod', 'basePlanId'
+      // User bootstrap document; entitlement is always created as "free".
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.subscriptionStatus == 'free'
+        && request.resource.data.keys().hasOnly([
+          'uid',
+          'email',
+          'name',
+          'profileImageUrl',
+          'subscriptionStatus',
+          'aiImagesGenerated',
+          'createdAt',
+          'updatedAt'
         ]);
-      
+
+      // Client is never allowed to mutate billing/subscription fields.
+      allow update: if isOwner(userId)
+        && !hasBlockedEntitlementKeys()
+        && userWritableKeysOnly();
+
+      allow delete: if false;
+
       match /history/{itemId} {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.id == itemId;
+        allow delete: if isOwner(userId);
       }
+    }
+
+    // NOTE: Collection name aligned with app code (deletion_requests).
+    match /deletion_requests/{userId} {
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.keys().hasOnly([
+          'uid',
+          'email',
+          'requestedAt',
+          'status'
+        ])
+        && request.resource.data.status == 'pending';
+
+      allow read: if isOwner(userId);
+      allow update, delete: if false;
     }
   }
 }

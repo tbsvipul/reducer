@@ -6,9 +6,9 @@ import 'package:iconsax/iconsax.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  final String? redirectTo;
-
   const LoginScreen({super.key, this.redirectTo});
+
+  final String? redirectTo;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -39,7 +39,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.loginFailed(e.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.loginFailed(e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -47,12 +51,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _googleSignIn() async {
     try {
-      await ref.read(authControllerProvider.notifier).signInWithGoogle();
-      if (mounted) context.go(_postAuthRoute());
+      final signedIn = await ref
+          .read(authControllerProvider.notifier)
+          .signInWithGoogle();
+      if (signedIn && mounted) {
+        context.go(_postAuthRoute());
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.googleSignInFailed(e.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.googleSignInFailed(e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -61,10 +73,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String _postAuthRoute() {
     final target = widget.redirectTo;
     if (target == null || target.isEmpty) return '/';
-    
+
     // Security Fix: Ensure it's a strictly internal path and avoid protocol-relative URLs (//)
     if (!target.startsWith('/') || target.startsWith('//')) return '/';
-    
+
     // Avoid redirect loops
     if (target == '/login' || target == '/register' || target == '/splash') {
       return '/';
@@ -79,67 +91,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _showForgotPasswordDialog() async {
-    final emailController = TextEditingController(text: _emailController.text);
     return showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.resetPassword),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.resetPasswordDescription,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.emailAddress,
-                border: const OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final email = emailController.text.trim();
-              if (email.isEmpty) return;
-              
-              Navigator.pop(context); // Close dialog first
-
-              final l10n = AppLocalizations.of(context)!;
-              final messenger = ScaffoldMessenger.of(context);
-              try {
-                await ref.read(authControllerProvider.notifier).sendPasswordResetEmail(email);
-                if (mounted) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.passwordResetSent),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(e.toString()),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: Text(AppLocalizations.of(context)!.sendResetLink),
-          ),
-        ],
+      builder: (context) => _ForgotPasswordDialog(
+        initialEmail: _emailController.text,
+        onSend: (email) async {
+          final l10n = AppLocalizations.of(context)!;
+          final messenger = ScaffoldMessenger.of(context);
+          try {
+            await ref
+                .read(authControllerProvider.notifier)
+                .sendPasswordResetEmail(email);
+            if (mounted) {
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(l10n.passwordResetSent),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(e.toString()),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
       ),
     );
   }
@@ -234,7 +215,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           return AppLocalizations.of(context)!.pleaseEnterEmail;
                         }
                         if (!_emailRegex.hasMatch(value.trim())) {
-                          return AppLocalizations.of(context)!.pleaseEnterValidEmail;
+                          return AppLocalizations.of(
+                            context,
+                          )!.pleaseEnterValidEmail;
                         }
                         return null;
                       },
@@ -262,10 +245,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(context)!.pleaseEnterPassword;
+                          return AppLocalizations.of(
+                            context,
+                          )!.pleaseEnterPassword;
                         }
                         if (value.length < 6) {
-                          return AppLocalizations.of(context)!.passwordLengthError;
+                          return AppLocalizations.of(
+                            context,
+                          )!.passwordLengthError;
                         }
                         return null;
                       },
@@ -277,7 +264,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => _showForgotPasswordDialog(),
-                        child: Text(AppLocalizations.of(context)!.forgotPassword),
+                        child: Text(
+                          AppLocalizations.of(context)!.forgotPassword,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -311,7 +300,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Expanded(child: Divider(color: theme.dividerColor)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(AppLocalizations.of(context)!.or, style: theme.textTheme.bodySmall),
+                          child: Text(
+                            AppLocalizations.of(context)!.or,
+                            style: theme.textTheme.bodySmall,
+                          ),
                         ),
                         Expanded(child: Divider(color: theme.dividerColor)),
                       ],
@@ -333,7 +325,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           width: 18,
                         ),
                       ),
-                      label: Text(AppLocalizations.of(context)!.continueWithGoogle),
+                      label: Text(
+                        AppLocalizations.of(context)!.continueWithGoogle,
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -380,3 +374,71 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
+class _ForgotPasswordDialog extends StatefulWidget {
+  const _ForgotPasswordDialog({
+    required this.initialEmail,
+    required this.onSend,
+  });
+
+  final String initialEmail;
+  final Function(String) onSend;
+
+  @override
+  State<_ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
+}
+
+class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
+  late final TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController(text: widget.initialEmail);
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(AppLocalizations.of(context)!.resetPassword),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.resetPasswordDescription,
+            style: const TextStyle(fontSize: 14),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _emailController,
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.emailAddress,
+              border: const OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.emailAddress,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(AppLocalizations.of(context)!.cancel),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final email = _emailController.text.trim();
+            if (email.isEmpty) return;
+            Navigator.pop(context);
+            widget.onSend(email);
+          },
+          child: Text(AppLocalizations.of(context)!.sendResetLink),
+        ),
+      ],
+    );
+  }
+}

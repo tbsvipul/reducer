@@ -65,7 +65,7 @@ class AlreadyProState extends ConsumerWidget {
                       backgroundColor: Colors.transparent,
                       elevation: 0,
                       leading: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white70),
+                        icon: const Icon(Icons.close, color: Colors.white70),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),

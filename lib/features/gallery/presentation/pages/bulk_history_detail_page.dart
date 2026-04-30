@@ -26,6 +26,7 @@ class BulkHistoryDetailScreen extends StatefulWidget {
 class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
   String? _appDocDir;
   List<String> _resolvedPaths = [];
+  Map<String, int> _fileSizes = {};
 
   @override
   void initState() {
@@ -35,10 +36,26 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
 
   Future<void> _initAppDir() async {
     final dir = await getApplicationDocumentsDirectory();
+    final paths = widget.item.getAbsoluteProcessedPaths(dir.path);
+    
+    // Pre-calculate file sizes to avoid FutureBuilder in ListView
+    final sizes = <String, int>{};
+    for (final path in paths) {
+      try {
+        final file = File(path);
+        if (await file.exists()) {
+          sizes[path] = await file.length();
+        }
+      } catch (e) {
+        debugPrint('Error getting size for $path: $e');
+      }
+    }
+
     if (mounted) {
       setState(() {
         _appDocDir = dir.path;
-        _resolvedPaths = widget.item.getAbsoluteProcessedPaths(dir.path);
+        _resolvedPaths = paths;
+        _fileSizes = sizes;
       });
     }
   }
@@ -166,14 +183,10 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
                           ),
-                          subtitle: FutureBuilder<int>(
-                            future: file.existsSync() ? file.length() : Future.value(0),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Text(_formatSize(snapshot.data!));
-                              }
-                              return const Text('...');
-                            },
+                          subtitle: Text(
+                            _fileSizes.containsKey(path)
+                                ? _formatSize(_fileSizes[path]!)
+                                : '...',
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
