@@ -10,9 +10,12 @@ import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:reducer/core/services/permission_service.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/shared/presentation/widgets/ads/banner_ad_widget.dart';
+import 'package:reducer/common/presentation/widgets/ads/banner_ad_widget.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:reducer/common/widgets/app_snackbar.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
+import 'package:reducer/core/theme/app_text_styles.dart';
 
 class BulkHistoryDetailScreen extends StatefulWidget {
   final HistoryItem item;
@@ -62,54 +65,63 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.bulkSessionDetails),
+        title: Text(l10n.bulkSessionDetails),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
       ),
       body: Column(
         children: [
           const BannerAdWidget(),
           // Header summary card
           Container(
-            padding: EdgeInsets.all(20.r),
-            margin: EdgeInsets.all(16.r),
+            padding: EdgeInsets.all(AppDimensions.lg.r),
+            margin: EdgeInsets.all(AppDimensions.md.r),
             decoration: AppTheme.cardDecoration(context),
             child: Column(
               children: [
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(12.r),
+                      padding: EdgeInsets.all(AppDimensions.md.r),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.1),
+                        color: AppColors.warning.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Iconsax.grid_5, color: Colors.orange, size: 24.r),
+                      child: Icon(Iconsax.grid_5, color: AppColors.warning, size: 24.r),
                     ),
-                    SizedBox(width: 16.w),
+                    SizedBox(width: AppDimensions.md.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppLocalizations.of(context)!.xImagesProcessed(widget.item.itemCount),
-                            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                            l10n.xImagesProcessed(widget.item.itemCount),
+                            style: AppTextStyles.titleMedium(context).copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             DateFormat('MMMM dd, yyyy • HH:mm').format(widget.item.timestamp),
-                            style: TextStyle(color: Colors.grey, fontSize: 12.sp),
+                            style: AppTextStyles.labelSmall(context).copyWith(
+                              color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const Divider(height: 32),
+                const Divider(height: AppDimensions.xl2),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStat(AppLocalizations.of(context)!.format, widget.item.settings.format.name.toUpperCase()),
-                    _buildStat(AppLocalizations.of(context)!.imageQuality, '${widget.item.settings.quality}%'),
+                    _buildStat(l10n.format, widget.item.settings.format.name.toUpperCase()),
+                    _buildStat(l10n.imageQuality, '${widget.item.settings.quality}%'),
                     _buildStat('Total Sav.', '${widget.item.compressionPercent.toStringAsFixed(1)}%'),
                   ],
                 ),
@@ -118,12 +130,12 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
           ),
 
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w, vertical: AppDimensions.sm.h),
             child: Row(
               children: [
                 Text(
                   'Processed Images',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: AppTextStyles.titleSmall(context).copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -136,19 +148,21 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Iconsax.image, size: 48.r, color: Colors.grey[300]),
-                        SizedBox(height: 16.h),
+                        Icon(Iconsax.image, size: 48.r, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        SizedBox(height: AppDimensions.md.h),
                         Text(
                           _appDocDir == null 
-                              ? AppLocalizations.of(context)!.loadingImages 
-                              : AppLocalizations.of(context)!.noImagesFoundInSession,
-                          style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                              ? l10n.loadingImages 
+                              : l10n.noImagesFoundInSession,
+                          style: AppTextStyles.labelMedium(context).copyWith(
+                            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    padding: EdgeInsets.symmetric(horizontal: AppDimensions.md.w),
                     itemCount: _resolvedPaths.length,
                     itemBuilder: (context, index) {
                       final path = _resolvedPaths[index];
@@ -156,11 +170,17 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                       final fileName = p.basename(path);
 
                       return Card(
-                        margin: EdgeInsets.only(bottom: 12.h),
+                        margin: EdgeInsets.only(bottom: AppDimensions.md.h),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
+                          side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        ),
+                        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                         child: ListTile(
-                          contentPadding: EdgeInsets.all(8.r),
+                          contentPadding: EdgeInsets.all(AppDimensions.sm.r),
                           leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.r),
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusSm.r),
                             child: file.existsSync()
                                 ? Image.file(
                                     file,
@@ -173,7 +193,7 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                                 : Container(
                                     width: 60.r,
                                     height: 60.r,
-                                    color: Colors.grey[200],
+                                    color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
                                     child: Icon(Iconsax.image, size: 24.r),
                                   ),
                           ),
@@ -181,12 +201,13 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                             fileName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+                            style: AppTextStyles.labelMedium(context).copyWith(fontWeight: FontWeight.w600),
                           ),
                           subtitle: Text(
                             _fileSizes.containsKey(path)
                                 ? _formatSize(_fileSizes[path]!)
                                 : '...',
+                            style: AppTextStyles.labelSmall(context),
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -195,23 +216,22 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                                 icon: Icon(Iconsax.share, size: 20.r, color: AppColors.secondary),
                                 onPressed: () async {
                                   if (file.existsSync()) {
-                                    await SharePlus.instance.share(
-                                      ShareParams(files: [XFile(path)]),
-                                    );
+                                    await SharePlus.instance.share(ShareParams(files: [XFile(path)]));
                                   }
                                 },
                               ),
                               IconButton(
                                 icon: Icon(Iconsax.save_2, size: 20.r, color: AppColors.primary),
                                 onPressed: () async {
-                                  final messenger = ScaffoldMessenger.of(context);
                                   if (file.existsSync()) {
                                     final ok = await PermissionService.instance.ensurePhotosPermission(context);
-                                    if (ok) {
+                                    if (ok && mounted) {
                                       await Gal.putImage(path, album: 'Reducer');
                                       if (context.mounted) {
-                                        messenger.showSnackBar(
-                                          const SnackBar(content: Text('Saved to gallery!'), behavior: SnackBarBehavior.floating),
+                                        AppSnackbar.show(
+                                          context,
+                                          'Saved to gallery!',
+                                          type: AppSnackbarType.success,
                                         );
                                       }
                                     }
@@ -233,9 +253,9 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
   Widget _buildStat(String label, String value) {
     return Column(
       children: [
-        Text(label, style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+        Text(label, style: AppTextStyles.labelSmall(context).copyWith(color: Colors.grey)),
         SizedBox(height: 4.h),
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
+        Text(value, style: AppTextStyles.titleSmall(context).copyWith(fontWeight: FontWeight.bold)),
       ],
     );
   }

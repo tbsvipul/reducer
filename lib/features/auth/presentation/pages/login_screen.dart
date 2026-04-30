@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
+import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 
@@ -34,7 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await ref
           .read(authControllerProvider.notifier)
-          .login(_emailController.text.trim(), _passwordController.text.trim());
+          .signIn(_emailController.text.trim(), _passwordController.text.trim());
       if (mounted) context.go(_postAuthRoute());
     } catch (e) {
       if (mounted) {
@@ -51,10 +51,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _googleSignIn() async {
     try {
-      final signedIn = await ref
+      await ref
           .read(authControllerProvider.notifier)
           .signInWithGoogle();
-      if (signedIn && mounted) {
+      if (mounted) {
         context.go(_postAuthRoute());
       }
     } catch (e) {
@@ -127,7 +127,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(authControllerProvider);
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
     final theme = Theme.of(context);
 
     return Scaffold(

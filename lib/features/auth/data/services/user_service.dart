@@ -8,10 +8,10 @@ class UserService {
   CollectionReference get _usersCollection => _firestore.collection('users');
 
   /// Streams the user document from Firestore.
-  Stream<UserModel?> streamUser(String uid) {
+  Stream<AppUser?> streamUser(String uid) {
     return _usersCollection.doc(uid).snapshots().map((doc) {
       if (!doc.exists) return null;
-      return UserModel.fromFirestore(doc);
+      return AppUser.fromFirestore(doc);
     });
   }
 
@@ -26,22 +26,24 @@ class UserService {
     final doc = await docRef.get();
 
     if (!doc.exists) {
-      final newUser = UserModel(
+      final newUser = AppUser(
         uid: user.uid,
         email: email,
-        name: name,
-        profileImageUrl: profileImageUrl,
+        displayName: name,
+        photoUrl: profileImageUrl,
+        createdAt: DateTime.now(),
+        lastLoginAt: DateTime.now(),
       );
-      await docRef.set(newUser.toFirestore());
+      await docRef.set(newUser.toJson());
     } else {
       // Update basic info if needed, but don't overwrite subscription data
       final updateData = {
         'email': email,
-        'name': name,
-        'updatedAt': FieldValue.serverTimestamp(),
+        'displayName': name,
+        'lastLoginAt': FieldValue.serverTimestamp(),
       };
       if (profileImageUrl != null) {
-        updateData['profileImageUrl'] = profileImageUrl;
+        updateData['photoUrl'] = profileImageUrl;
       }
       await docRef.update(updateData);
     }
@@ -51,7 +53,7 @@ class UserService {
   Future<void> updateFields(String uid, Map<String, dynamic> data) async {
     await _usersCollection.doc(uid).update({
       ...data,
-      'updatedAt': FieldValue.serverTimestamp(),
+      'lastLoginAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -74,9 +76,16 @@ class UserService {
   }
 
   /// Fetches a user document once.
-  Future<UserModel?> getUser(String uid) async {
+  Future<AppUser?> getUser(String uid) async {
     final doc = await _usersCollection.doc(uid).get();
     if (!doc.exists) return null;
-    return UserModel.fromFirestore(doc);
+    return AppUser.fromFirestore(doc);
+  }
+  /// Disables the user's account in Firestore.
+  Future<void> disableAccount(String uid) async {
+    await _usersCollection.doc(uid).update({
+      'isAccountDisabled': true,
+      'disabledAt': FieldValue.serverTimestamp(),
+    });
   }
 }

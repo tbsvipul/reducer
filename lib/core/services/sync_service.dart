@@ -1,29 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reducer/features/gallery/data/models/history_item.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
+import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
 
 /// Provider for the Sync Service
 final syncServiceProvider = Provider<FirestoreSyncService>((ref) {
-  final user = ref.watch(authStateProvider).value;
-  return FirestoreSyncService(user);
+  final user = ref.watch(authStateChangesProvider).value;
+  return FirestoreSyncService(user?.uid);
 });
 
 /// Service responsible for syncing edit history to the cloud.
 class FirestoreSyncService {
-  final User? user;
+  final String? userId;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  FirestoreSyncService(this.user);
+  FirestoreSyncService(this.userId);
 
-  bool get isAuthenticated => user != null;
+  bool get isAuthenticated => userId != null;
 
   /// Collection reference for the user's history.
   CollectionReference? get _historyCollection {
-    if (user == null) return null;
-    return _db.collection('users').doc(user!.uid).collection('history');
+    if (userId == null) return null;
+    return _db.collection('users').doc(userId).collection('history');
   }
 
   /// Sync a new history item to Firestore with retry logic.

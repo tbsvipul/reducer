@@ -8,14 +8,17 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/features/settings/presentation/widgets/settings_tile.dart';
 import 'package:reducer/features/settings/presentation/widgets/settings_section_header.dart';
 import 'package:reducer/features/settings/presentation/widgets/review_card.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:reducer/core/services/remote_config_service.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
+import 'package:reducer/common/widgets/app_dialog.dart';
+import 'package:reducer/common/widgets/app_snackbar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -30,95 +33,57 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _shareApp(BuildContext context) {
-    SharePlus.instance.share(
-      ShareParams(
-        text: AppLocalizations.of(context)!.shareAppText(_appStoreUrl),
-        subject: 'Reducer',
-      ),
-    );
+    SharePlus.instance.share(ShareParams(
+      text: AppLocalizations.of(context)!.shareAppText(_appStoreUrl),
+      subject: 'Reducer',
+    ));
   }
 
   Future<void> _showDeleteAccountDialog(
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final user = ref.read(authServiceProvider).currentUser;
+    final user = ref.read(authRepositoryProvider).currentUser;
     if (user == null || user.isAnonymous) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please login before requesting account deletion.'),
-          ),
-        );
-      }
+      debugPrint('Account Deletion Error: Please login before requesting account deletion.');
       return;
     }
 
-    final userEmail = user.email ?? '';
-    final userId = user.uid;
+    unawaited(AppDialog.show(
+      context,
+      title: 'Delete Account?',
+      message: 'This will permanently delete your account and all data. This action cannot be undone.',
+      confirmLabel: 'Delete Permanently',
+      cancelLabel: 'Cancel',
+      type: AppDialogType.error,
+      onConfirm: () async {
+        try {
+          AppDialog.showLoading(context);
+          await ref.read(authControllerProvider.notifier).deleteAccount();
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Account?'),
-        content: const Text(
-          'A deletion request will be sent to our support team. '
-          'Your account will be reviewed and deleted within a few business days.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Request Deletion'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        if (context.mounted) {
-          unawaited(
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) =>
-                  const Center(child: CircularProgressIndicator()),
-            ),
-          );
+          if (context.mounted) {
+            Navigator.pop(context); // Pop loading
+            AppSnackbar.show(context, 'Account deleted successfully.');
+          }
+        } catch (e) {
+          if (context.mounted) {
+            Navigator.pop(context); // Pop loading
+            debugPrint('Account Deletion Error: $e');
+            AppSnackbar.show(
+              context, 
+              'Deletion failed. For security, you may need to logout and log back in before deleting your account.', 
+              type: AppSnackbarType.error
+            );
+          }
         }
-
-        await ref
-            .read(userServiceProvider)
-            .requestAccountDeletion(uid: userId, email: userEmail);
-
-        if (context.mounted) {
-          Navigator.pop(context); // Pop loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Deletion request sent successfully.'),
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          Navigator.pop(context); // Pop loading
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed to send request: $e')));
-        }
-      }
-    }
+      },
+    ));
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final premiumState = ref.watch(premiumControllerProvider);
-    final authUser = ref.watch(authStateProvider).value;
+    final authUser = ref.watch(authStateChangesProvider).value;
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -127,13 +92,13 @@ class SettingsScreen extends ConsumerWidget {
           l10n.settings,
           style: Theme.of(
             context,
-          ).textTheme.headlineSmall?.copyWith(fontSize: 20),
+          ).textTheme.headlineSmall?.copyWith(fontSize: 20.sp),
         ),
         elevation: 0,
         centerTitle: false,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: EdgeInsets.all(AppDimensions.lg.r),
         children: [
           // ── Premium Section ───────────────────────────────────────────────
           if (!premiumState.isPro) ...[
@@ -141,30 +106,30 @@ class SettingsScreen extends ConsumerWidget {
 
             Card(
               child: ListTile(
-                leading: const Icon(Iconsax.crown, color: AppColors.premium),
-                title: Text(l10n.upgradeToPro),
-                subtitle: Text(l10n.upgradeSubtitle),
-                trailing: const Icon(Iconsax.arrow_right_3, size: 16),
+                leading: Icon(Iconsax.crown, color: AppColors.premium, size: 24.r),
+                title: Text(l10n.upgradeToPro, style: TextStyle(fontSize: 16.sp)),
+                subtitle: Text(l10n.upgradeSubtitle, style: TextStyle(fontSize: 14.sp)),
+                trailing: Icon(Iconsax.arrow_right_3, size: 16.r),
                 onTap: () => context.push('/premium'),
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppDimensions.xl.h),
           ] else ...[
             SettingsSectionHeader(title: l10n.subscription),
 
             Card(
               child: ListTile(
-                leading: const Icon(Iconsax.verify, color: AppColors.success),
-                title: Text(l10n.proActive),
-                subtitle: Text(l10n.supportThanks),
+                leading: Icon(Iconsax.verify, color: AppColors.success, size: 24.r),
+                title: Text(l10n.proActive, style: TextStyle(fontSize: 16.sp)),
+                subtitle: Text(l10n.supportThanks, style: TextStyle(fontSize: 14.sp)),
                 onTap: () => context.push('/premium'),
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppDimensions.xl.h),
           ],
 
           const ReviewCard(),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppDimensions.xl.h),
 
           // ── Support & Feedback ──────────────────────────────────────────────
           SettingsSectionHeader(title: l10n.supportAndFeedback),
@@ -189,7 +154,7 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppDimensions.xl.h),
           // ── Preferences ───────────────────────────────────────────────────
           SettingsSectionHeader(title: l10n.preferences),
 
@@ -206,7 +171,7 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppDimensions.xl.h),
 
           // ── Account Section ──────────────────────────────────────────────
           if (authUser != null && !authUser.isAnonymous) ...[
@@ -223,7 +188,7 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppDimensions.xl.h),
           ],
 
           // ── About ───────────────────────────────────────────────────────────
@@ -247,14 +212,15 @@ class SettingsScreen extends ConsumerWidget {
                     final version = snapshot.data?.version ?? '1.0.0';
                     final build = snapshot.data?.buildNumber ?? '1';
                     return ListTile(
-                      leading: const Icon(Iconsax.info_circle),
-                      title: Text(l10n.version),
+                      leading: Icon(Iconsax.info_circle, size: 24.r),
+                      title: Text(l10n.version, style: TextStyle(fontSize: 16.sp)),
                       trailing: Text(
                         '$version ($build)',
                         style: TextStyle(
                           color: Theme.of(context).brightness == Brightness.dark
                               ? AppColors.onDarkSurfaceVariant
                               : AppColors.onLightSurfaceVariant,
+                          fontSize: 14.sp,
                         ),
                       ),
                     );
@@ -264,7 +230,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: AppSpacing.xl2),
+          SizedBox(height: AppDimensions.xl2.h),
           Center(
             child: Text(
               l10n.madeWithHeart,
@@ -272,6 +238,7 @@ class SettingsScreen extends ConsumerWidget {
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.onDarkSurfaceVariant
                     : AppColors.onLightSurfaceVariant,
+                fontSize: 12.sp,
               ),
             ),
           ),

@@ -8,11 +8,16 @@ class ForceUpdateService {
   factory ForceUpdateService() => _instance;
   ForceUpdateService._internal();
 
+  bool _isShowingDialog = false;
+
   Future<void> checkAndEnforce(BuildContext context) async {
+    if (_isShowingDialog) return;
+    
     final config = RemoteConfigService();
     
     // 1. Check Maintenance Mode
     if (config.maintenanceMode) {
+      _isShowingDialog = true;
       _showMaintenanceScreen(context);
       return;
     }
@@ -25,6 +30,7 @@ class ForceUpdateService {
       final minVersion = config.forceUpdateMinVersion;
 
       if (_isVersionOlder(currentVersion, minVersion)) {
+        _isShowingDialog = true;
         _showUpdateDialog(context, config.appStoreUrl);
       }
     }

@@ -84,16 +84,16 @@ class ImageSettings {
 
   factory ImageSettings.fromJson(Map<String, dynamic> json) {
     return ImageSettings(
-      width: json['width'],
-      height: json['height'],
+      width: (json['width'] as num?)?.toDouble(),
+      height: (json['height'] as num?)?.toDouble(),
       lockAspect: json['lockAspect'] ?? true,
-      quality: json['quality'] ?? 80.0,
+      quality: (json['quality'] as num?)?.toDouble() ?? 80.0,
       format: ImageFormat.values[json['format'] ?? 0],
-      scalePercent: json['scalePercent'] ?? 100.0,
-      rotation: json['rotation'] ?? 0.0,
+      scalePercent: (json['scalePercent'] as num?)?.toDouble() ?? 100.0,
+      rotation: (json['rotation'] as num?)?.toDouble() ?? 0.0,
       flipHorizontal: json['flipHorizontal'] ?? false,
       flipVertical: json['flipVertical'] ?? false,
-      targetFileSizeKB: json['targetFileSizeKB'],
+      targetFileSizeKB: (json['targetFileSizeKB'] as num?)?.toDouble(),
       isTargetUnitMb: json['isTargetUnitMb'] ?? true,
     );
   }

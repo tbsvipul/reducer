@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/core/services/review_service.dart';
 
@@ -16,54 +16,40 @@ class ReviewCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXl2),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  const Color(0xFF1E293B),
-                  const Color(0xFF0F172A),
-                ]
-              : [
-                  const Color(0xFFF8FAFC),
-                  const Color(0xFFF1F5F9),
-                ],
+          colors: isDark ? AppColors.darkSurfaceGradient : AppColors.lightSurfaceGradient,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        boxShadow: isDark ? AppColors.cardShadowDark : AppColors.cardShadowLight,
         border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
           width: 1,
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXl2),
         child: Stack(
           children: [
             // Subtle background decoration
             Positioned(
-              right: -20,
-              top: -20,
+              right: -AppDimensions.xl,
+              top: -AppDimensions.xl,
               child: Icon(
                 Iconsax.heart,
-                size: 120,
+                size: AppDimensions.iconXl4 * 1.5,
                 color: AppColors.premium.withValues(alpha: 0.05),
               ),
             ),
             
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+              padding: const EdgeInsets.all(AppDimensions.pagePadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(AppDimensions.md),
                     decoration: BoxDecoration(
                       color: AppColors.premium.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
@@ -71,26 +57,25 @@ class ReviewCard extends StatelessWidget {
                     child: const Icon(
                       Iconsax.star5,
                       color: AppColors.premium,
-                      size: 32,
+                      size: AppDimensions.iconXl,
                     ),
                   ).animate(onPlay: (c) => c.repeat()).shimmer(
                         delay: 2000.ms,
                         duration: 1500.ms,
-                        color: Colors.white24,
+                        color: isDark ? Colors.white24 : AppColors.primary.withValues(alpha: 0.2),
                       ),
                   
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppDimensions.lg),
                   
                   Text(
                     'Enjoying Reducer?',
                     style: AppTextStyles.titleMedium(context).copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   
-                  const SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: AppDimensions.xs),
                   
                   Text(
                     'Your feedback helps us grow and improve.',
@@ -100,7 +85,7 @@ class ReviewCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppDimensions.xl),
                   
                   // Star Rating Mockup
                   Row(
@@ -109,7 +94,7 @@ class ReviewCard extends StatelessWidget {
                       return const Icon(
                         Iconsax.star5,
                         color: AppColors.premium,
-                        size: 24,
+                        size: AppDimensions.iconLg,
                       ).animate().scale(
                             delay: (index * 100).ms,
                             duration: 400.ms,
@@ -118,7 +103,7 @@ class ReviewCard extends StatelessWidget {
                     }),
                   ),
                   
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppDimensions.xl),
                   
                   SizedBox(
                     width: double.infinity,
@@ -126,10 +111,10 @@ class ReviewCard extends StatelessWidget {
                       onPressed: () => ReviewService().openStoreListing(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.premium,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        foregroundColor: AppColors.onPremium,
+                        padding: const EdgeInsets.symmetric(vertical: AppDimensions.lg),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
                         ),
                         elevation: 0,
                       ),

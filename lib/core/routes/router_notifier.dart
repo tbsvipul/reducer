@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reducer/core/localization/locale_provider.dart';
 import 'package:reducer/core/routes/app_startup_provider.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
+import 'package:reducer/features/auth/domain/models/user_model.dart';
+import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
 import 'package:reducer/features/exif/presentation/providers/exif_providers.dart';
 
@@ -12,11 +12,11 @@ import 'package:reducer/features/exif/presentation/providers/exif_providers.dart
 /// This class implements [Listenable] so GoRouter can react to state changes.
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
-  User? _user;
+  AppUser? _user;
 
   RouterNotifier(this._ref) {
     // Initialize with current state
-    _user = _ref.read(authProvider).value;
+    _user = _ref.read(authStateChangesProvider).value;
 
     // Listen to startup state and notify GoRouter
     _ref.listen<bool>(appStartupProvider, (previous, current) => notifyListeners());
@@ -25,9 +25,16 @@ class RouterNotifier extends ChangeNotifier {
     _ref.listen<bool?>(onboardingProvider, (previous, current) => notifyListeners());
 
     // Listen to auth state changes and notify GoRouter
-    _ref.listen<AsyncValue<User?>>(authProvider, (previous, next) {
+    _ref.listen<AsyncValue<AppUser?>>(authStateChangesProvider, (previous, next) {
       if (next is AsyncData) {
         _user = next.value;
+        notifyListeners();
+      }
+    });
+
+    // Listen to premium status changes and notify GoRouter
+    _ref.listen<PurchaseState>(premiumControllerProvider, (previous, next) {
+      if (previous?.isPro != next.isPro) {
         notifyListeners();
       }
     });
@@ -45,7 +52,13 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     // 2. Onboarding guard
-    if (!onboardingComplete) {
+    final onboardingStatus = _ref.read(onboardingProvider);
+    if (onboardingStatus == null) {
+      // Still loading onboarding status, stay on splash or current
+      return null;
+    }
+    
+    if (onboardingStatus == true) { // true means first time
       return path == '/language-selection' ? null : '/language-selection';
     }
 
@@ -53,7 +66,7 @@ class RouterNotifier extends ChangeNotifier {
     // EXCEPT if they are coming from settings (indicated by fromSettings query parameter)
     if (isInitialized && onboardingComplete) {
       if (path == '/splash') {
-        return isPro ? '/' : '/premium';
+        return '/';
       }
       if (path == '/language-selection' && state.uri.queryParameters['fromSettings'] != 'true') {
         return '/';
@@ -61,7 +74,7 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     final isAuthRoute = path == '/login' || path == '/register';
-    final isLoggedIn = _user != null && !_user!.isAnonymous;
+    final isLoggedIn = _user != null;
     final requestedRedirect = state.uri.queryParameters['redirect'];
 
     // Guest mode is allowed across the app, including profile.

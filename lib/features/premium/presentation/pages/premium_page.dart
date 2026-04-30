@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
-import 'package:reducer/shared/widgets/app_status_bar.dart';
+import 'package:reducer/common/widgets/app_status_bar.dart';
 import 'package:reducer/features/premium/presentation/widgets/already_pro_state.dart';
 import 'package:reducer/features/premium/presentation/widgets/premium_error_state.dart';
 import 'package:reducer/features/premium/presentation/widgets/no_plans_state.dart';
@@ -15,7 +15,7 @@ import 'package:reducer/features/premium/presentation/widgets/premium_loading_ov
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 
 class PremiumScreen extends ConsumerWidget {
   const PremiumScreen({super.key});
@@ -82,7 +82,7 @@ class PremiumScreen extends ConsumerWidget {
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl3, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(horizontal: AppDimensions.xl3, vertical: 12.h),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: constraints.maxHeight - 16.h,

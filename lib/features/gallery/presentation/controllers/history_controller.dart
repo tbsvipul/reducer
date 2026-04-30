@@ -9,6 +9,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:reducer/features/gallery/data/models/history_item.dart';
 import 'package:reducer/core/services/sync_service.dart';
 
+import '../../../auth/presentation/controllers/auth_controller.dart';
+
 class HistoryState {
   final List<HistoryItem> items;
   final bool isLoading;
@@ -40,24 +42,46 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
   static const _legacyKey = 'edit_history_v2';
   static const _secureStorage = FlutterSecureStorage();
 
+  /// Initialized the history state and sets up listeners.
   @override
   Future<HistoryState> build() async {
-    // Fix: Async build initializes state before any method reads it.
-    final items = await _loadItemsFromStorage();
+    // Watch auth state changes. When user logs in/out, this provider will rebuild.
+    final userAsync = ref.watch(authStateChangesProvider);
+    final user = userAsync.valueOrNull;
+    final uid = user?.uid ?? 'guest';
+
+    // Load items for this specific user
+    final items = await _loadItemsFromStorage(uid);
+    
+    // If user just logged in (not guest), trigger cloud sync
+    if (user != null && !user.isAnonymous) {
+      _syncToCloud(items);
+    }
+
     return HistoryState(items: items, isLoading: false);
   }
 
+  void _syncToCloud(List<HistoryItem> items) {
+    final syncService = ref.read(syncServiceProvider);
+    unawaited(syncService.syncLocalItems(items));
+  }
+
+  /// Explicitly reloads the edit history from local storage.
   Future<void> loadHistory() async {
-    // Ensuring state is initialized.
     await future;
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final items = await _loadItemsFromStorage();
+      final user = ref.read(authStateChangesProvider).value;
+      final uid = user?.uid ?? 'guest';
+      final items = await _loadItemsFromStorage(uid);
       return HistoryState(items: items, isLoading: false);
     });
   }
 
+  /// Adds a new [HistoryItem] to the local and cloud history.
+  ///
+  /// Automatically triggers a sync with Firestore if authenticated.
   Future<void> addItem(HistoryItem item) async {
     final current = await future;
     
@@ -71,9 +95,12 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
     final syncService = ref.read(syncServiceProvider);
     unawaited(syncService.syncItem(item));
 
-    unawaited(_saveToStorage(updatedItems));
+    final user = ref.read(authStateChangesProvider).value;
+    final uid = user?.uid ?? 'guest';
+    unawaited(_saveToStorage(updatedItems, uid));
   }
 
+  /// Removes a history entry by its unique [id].
   Future<void> removeItem(String id) async {
     final current = await future;
     
@@ -88,52 +115,78 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
     final syncService = ref.read(syncServiceProvider);
     unawaited(syncService.deleteItem(id));
 
-    unawaited(_saveToStorage(updatedItems));
+    final user = ref.read(authStateChangesProvider).value;
+    final uid = user?.uid ?? 'guest';
+    unawaited(_saveToStorage(updatedItems, uid));
   }
 
+  /// Clears all history entries for the current user session.
   Future<void> clearAll() async {
-    // Guarantee initialization
     await future;
     
     state = const AsyncValue.data(
       HistoryState(items: [], isLoading: false),
     );
 
+    final user = ref.read(authStateChangesProvider).value;
+    final uid = user?.uid ?? 'guest';
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_sharedPrefsKey);
+    await prefs.remove('${_sharedPrefsKey}_$uid');
   }
 
-  Future<List<HistoryItem>> _loadItemsFromStorage() async {
+  Future<List<HistoryItem>> _loadItemsFromStorage(String uid) async {
     try {
-      // 1. Migration from insecure/secure storage if necessary
+      final userKey = '${_sharedPrefsKey}_$uid';
+      final prefs = await SharedPreferences.getInstance();
+
+      // 1. Initial migration from global to user-specific if needed
+      if (!prefs.containsKey(userKey) && uid != 'guest') {
+         await _migrateToUserSpecific(uid);
+      }
+
+      // 2. Migration from insecure/secure storage if necessary
       await _migrateToSharedPreferences();
 
-      // 2. Read from shared preferences
-      final prefs = await SharedPreferences.getInstance();
-      final historyJsonRaw = prefs.getString(_sharedPrefsKey);
+      // 3. Read from shared preferences using user-specific key
+      final historyJsonRaw = prefs.getString(userKey);
       
       if (historyJsonRaw == null || historyJsonRaw.isEmpty) {
         return const [];
       }
       
-      final historyJson = (jsonDecode(historyJsonRaw) as List).cast<String>();
-      return compute(_decodeHistory, historyJson);
+      // PERF: Offload entire JSON string decoding and object mapping to isolate
+      return compute(_decodeHistoryFromRaw, historyJsonRaw);
     } catch (e) {
       debugPrint('[Storage] Failed to load history: $e');
       return const [];
     }
   }
 
-  Future<void> _saveToStorage(List<HistoryItem> items) async {
+  Future<void> _saveToStorage(List<HistoryItem> items, String uid) async {
     try {
-      final historyJson = await compute(_encodeHistory, items);
+      // PERF: Offload entire object graph serialization and JSON encoding to isolate
+      final historyJsonRaw = await compute(_encodeHistoryToRaw, items);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
-        _sharedPrefsKey,
-        jsonEncode(historyJson),
+        '${_sharedPrefsKey}_$uid',
+        historyJsonRaw,
       );
     } catch (e) {
       debugPrint('[Storage] Failed to save history: $e');
+    }
+  }
+
+  Future<void> _migrateToUserSpecific(String uid) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey(_sharedPrefsKey)) {
+      final globalData = prefs.getString(_sharedPrefsKey);
+      if (globalData != null) {
+        await prefs.setString('${_sharedPrefsKey}_$uid', globalData);
+        // We keep the global data for now to allow migration for other users 
+        // if they were sharing the same session, though unlikely.
+        // Or just remove it if we assume it's the primary user.
+        await prefs.remove(_sharedPrefsKey); 
+      }
     }
   }
 
@@ -180,23 +233,29 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
   }
 }
 
-List<String> _encodeHistory(List<HistoryItem> items) {
-  return items.map((item) => jsonEncode(item.toJson())).toList(growable: false);
+String _encodeHistoryToRaw(List<HistoryItem> items) {
+  final list = items.map((item) => jsonEncode(item.toJson())).toList(growable: false);
+  return jsonEncode(list);
 }
 
-List<HistoryItem> _decodeHistory(List<String> historyJson) {
+List<HistoryItem> _decodeHistoryFromRaw(String rawJson) {
   final items = <HistoryItem>[];
+  try {
+    final historyJson = (jsonDecode(rawJson) as List).cast<String>();
 
-  for (final rawItem in historyJson) {
-    try {
-      final decoded = jsonDecode(rawItem) as Map<String, dynamic>;
-      items.add(HistoryItem.fromJson(decoded));
-    } catch (e) {
-      debugPrint('Skipping corrupt history entry: $e');
+    for (final rawItem in historyJson) {
+      try {
+        final decoded = jsonDecode(rawItem) as Map<String, dynamic>;
+        items.add(HistoryItem.fromJson(decoded));
+      } catch (e) {
+        debugPrint('Skipping corrupt history entry: $e');
+      }
     }
-  }
 
-  items.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    items.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  } catch (e) {
+    debugPrint('History decoding failed: $e');
+  }
   return items;
 }
 

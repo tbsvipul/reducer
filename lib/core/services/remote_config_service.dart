@@ -8,7 +8,15 @@ class RemoteConfigService {
 
   RemoteConfigService._internal();
 
-  final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
+  FirebaseRemoteConfig? _rc;
+  FirebaseRemoteConfig get _remoteConfig {
+    try {
+      return _rc ??= FirebaseRemoteConfig.instance;
+    } catch (_) {
+      // If Firebase is not initialized, return a dummy or handle it in getters
+      rethrow;
+    }
+  }
 
   Future<void> init() async {
     try {
@@ -57,25 +65,82 @@ class RemoteConfigService {
         minimumFetchInterval: kDebugMode ? Duration.zero : const Duration(hours: 1),
       ));
 
-      await _remoteConfig.fetchAndActivate();
+      try {
+        await _remoteConfig.fetchAndActivate();
+      } catch (e) {
+        debugPrint('[RemoteConfigService] ⚠️ Initial fetch failed (using defaults): $e');
+      }
       
       // ── Real-time Updates ──────────────────────────────────────────────
-      _remoteConfig.onConfigUpdated.listen((event) async {
-        await _remoteConfig.activate();
-        debugPrint('[RemoteConfigService] 🔄 Config updated in real-time');
-      });
+      try {
+        _remoteConfig.onConfigUpdated.listen((event) async {
+          await _remoteConfig.activate();
+          debugPrint('[RemoteConfigService] 🔄 Config updated in real-time');
+        }, onError: (error) {
+          debugPrint('[RemoteConfigService] ⚠️ Real-time update error: $error');
+        });
+      } catch (e) {
+        debugPrint('[RemoteConfigService] ⚠️ Could not set up real-time listener: $e');
+      }
 
       debugPrint('[RemoteConfigService] ✅ Initialized successfully');
     } catch (e) {
-      debugPrint('[RemoteConfigService] ❌ Initialization failed: $e');
+      debugPrint('[RemoteConfigService] ❌ Initialization failed completely: $e');
     }
   }
 
-  // Generic Getters
-  String getString(String key) => _remoteConfig.getString(key);
-  int getInt(String key) => _remoteConfig.getInt(key);
-  bool getBool(String key) => _remoteConfig.getBool(key);
-  double getDouble(String key) => _remoteConfig.getDouble(key);
+  // Generic Getters with safety fallbacks
+  String getString(String key) {
+    try {
+      return _remoteConfig.getString(key);
+    } catch (_) {
+      return _defaults[key]?.toString() ?? '';
+    }
+  }
+
+  int getInt(String key) {
+    try {
+      return _remoteConfig.getInt(key);
+    } catch (_) {
+      final val = _defaults[key];
+      return val is int ? val : 0;
+    }
+  }
+
+  bool getBool(String key) {
+    try {
+      return _remoteConfig.getBool(key);
+    } catch (_) {
+      final val = _defaults[key];
+      return val is bool ? val : false;
+    }
+  }
+
+  double getDouble(String key) {
+    try {
+      return _remoteConfig.getDouble(key);
+    } catch (_) {
+      final val = _defaults[key];
+      return val is double ? val : (val is int ? val.toDouble() : 0.0);
+    }
+  }
+
+  // Hardcoded defaults for fallback before initialization
+  static const Map<String, dynamic> _defaults = {
+    'ad_interstitial_gap_seconds': 30,
+    'ad_app_open_gap_seconds': 30,
+    'ad_retry_base_seconds': 30,
+    'ad_retry_max_seconds': 1800,
+    'support_email': 'tarurinfotech@gmail.com',
+    'app_store_url': 'https://play.google.com/store/apps/details?id=com.tarurinfotech.reducer',
+    'max_file_size_mb': 50,
+    'max_image_dimension': 10000,
+    'force_update_enabled': false,
+    'force_update_min_version': '1.0.0',
+    'maintenance_mode': false,
+    'ads_enabled': true,
+    'iap_product_id': 'ai_image_pro',
+  };
 
   // Convenience Getters
   String get supportEmail => getString('support_email');

@@ -2,23 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:reducer/common/widgets/app_button.dart';
+import 'package:reducer/common/widgets/app_dialog.dart';
 import 'package:reducer/core/ads/ad_manager.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'feature_list_tile.dart';
-import 'login_required_dialog.dart';
 
+/// Section on the home screen displaying advanced/pro tools.
 class ProToolsSection extends StatelessWidget {
-  final bool isPro;
-  final bool isLoggedIn;
-
   const ProToolsSection({
     super.key,
     required this.isPro,
     required this.isLoggedIn,
   });
+
+  final bool isPro;
+  final bool isLoggedIn;
 
   @override
   Widget build(BuildContext context) {
@@ -26,40 +28,17 @@ class ProToolsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(l10n.advancedTools, style: AppTextStyles.titleLarge(context)),
-            const Spacer(),
-            if (!isPro)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.premiumContainer,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                ),
-                child: Text(
-                  l10n.proBadge,
-                  style: AppTextStyles.badgeLabel(context).copyWith(
-                    color: AppColors.premium,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
+        _buildHeader(context, l10n),
+        const SizedBox(height: AppDimensions.lg),
         FeatureListTile(
           title: l10n.bulkProcessing,
           subtitle: l10n.bulkSubtitle,
           icon: Iconsax.layer,
           isPro: true,
           hasAccess: isPro,
-          onTap: () =>
-              _handleProFeature(context, isPro, isLoggedIn, '/bulk-editor'),
+          onTap: () => _handleProFeature(context, isPro, isLoggedIn, '/bulk-editor', l10n),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppDimensions.md),
         FeatureListTile(
           title: l10n.exifEraser,
           subtitle: l10n.exifSubtitle,
@@ -70,7 +49,7 @@ class ProToolsSection extends StatelessWidget {
             onComplete: () => context.push('/exif-eraser'),
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppDimensions.md),
         FeatureListTile(
           title: l10n.viewHistory,
           subtitle: l10n.viewHistorySubtitle,
@@ -85,99 +64,91 @@ class ProToolsSection extends StatelessWidget {
     ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0);
   }
 
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
+    return Row(
+      children: [
+        Text(l10n.advancedTools, style: AppTextStyles.titleLarge(context)),
+        const Spacer(),
+        if (!isPro)
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.sm,
+              vertical: AppDimensions.xs2,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.premiumContainer,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+            ),
+            child: Text(
+              l10n.proBadge,
+              style: AppTextStyles.badgeLabel(context).copyWith(
+                color: AppColors.premium,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   void _handleProFeature(
     BuildContext context,
     bool isPro,
     bool isLoggedIn,
     String route,
+    AppLocalizations l10n,
   ) {
     if (isPro) {
-      if (route == '/bulk-editor') {
-        context.go(route);
-      } else {
-        context.go(route);
-      }
+      context.go(route);
       return;
     }
 
     if (!isLoggedIn) {
-      _showLoginRequiredDialog(context);
+      _showLoginRequiredDialog(context, l10n);
       return;
     }
 
-    _showPremiumRequiredDialog(context);
+    _showPremiumRequiredDialog(context, l10n);
   }
 
-  void _showPremiumRequiredDialog(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.xl2),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: AppColors.premium.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Iconsax.crown, color: AppColors.premium, size: 48),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Text(
-                AppLocalizations.of(context)!.unlockReducerPro,
-                style: AppTextStyles.headlineSmall(context),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                AppLocalizations.of(context)!.proDescription,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.xl2),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.push('/premium');
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.premium,
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  ),
-                  child: Text(AppLocalizations.of(context)!.upgradeToPro),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(AppLocalizations.of(context)!.maybeLater),
-              ),
-            ],
-          ),
-        ),
-      ),
+  void _showPremiumRequiredDialog(BuildContext context, AppLocalizations l10n) {
+    AppDialog.show(
+      context,
+      title: l10n.unlockReducerPro,
+      message: l10n.proDescription,
+      confirmLabel: l10n.upgradeToPro,
+      cancelLabel: l10n.maybeLater,
+      type: AppDialogType.info,
+      onConfirm: () => context.push('/premium'),
     );
   }
 
-  void _showLoginRequiredDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const LoginRequiredDialog(),
+  void _showLoginRequiredDialog(BuildContext context, AppLocalizations l10n) {
+    AppDialog.show(
+      context,
+      title: l10n.signInRequired,
+      message: l10n.signInRequiredDescription,
+      customActions: [
+        AppButton(
+          label: l10n.signInNow,
+          onPressed: () {
+            Navigator.pop(context);
+            context.push('/login');
+          },
+        ),
+        AppButton(
+          label: l10n.createAccount,
+          style: AppButtonStyle.outline,
+          onPressed: () {
+            Navigator.pop(context);
+            context.push('/register');
+          },
+        ),
+        AppButton(
+          label: l10n.maybeLater,
+          style: AppButtonStyle.ghost,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
     );
   }
 }
-
-

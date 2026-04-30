@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_spacing.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/features/bulk/presentation/controllers/bulk_image_controller.dart';
 import 'package:reducer/features/bulk/presentation/widgets/image_grid_tile.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:reducer/core/utils/file_utils.dart';
+
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BulkExportTabView extends StatelessWidget {
   final BulkImageState state;
@@ -33,13 +35,13 @@ class BulkExportTabView extends StatelessWidget {
         // Summary Section (Visible after processing)
         if (hasProcessed && !state.isProcessing)
            Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w, vertical: AppDimensions.sm.h),
             child: Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: EdgeInsets.all(AppDimensions.md.r),
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.1), width: 1.r),
               ),
               child: Column(
                 children: [
@@ -48,19 +50,19 @@ class BulkExportTabView extends StatelessWidget {
                     l10n.totalOriginal, 
                     FileUtils.formatBytesDetailed(state.totalOriginalSize),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimensions.xs),
                    _buildSummaryRow(
                     context, 
                     l10n.totalCompressed, 
                     FileUtils.formatBytesDetailed(state.totalCompressedSize),
                     valueColor: AppColors.primary,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimensions.xs),
                    _buildSummaryRow(
                     context, 
                     l10n.spaceSaved, 
                     '${state.totalOriginalSize > 0 ? ((state.totalOriginalSize - state.totalCompressedSize) / state.totalOriginalSize * 100).toInt() : 0}%',
-                    valueColor: Colors.green,
+                    valueColor: AppColors.success,
                   ),
                 ],
               ),
@@ -70,7 +72,7 @@ class BulkExportTabView extends StatelessWidget {
         // Progress Overlay (Only visible during processing)
         if (state.isProcessing)
           Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.all(AppDimensions.lg.r),
             color: AppColors.primary.withValues(alpha: 0.05),
             child: Column(
               children: [
@@ -78,23 +80,23 @@ class BulkExportTabView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                      Text(
-                      l10n.processingProgress(state.selectedImages.length), // Reusing processingProgress from arb
-                      style: AppTextStyles.labelMedium(context).copyWith(fontWeight: FontWeight.bold),
+                      l10n.processingProgress(state.selectedImages.length),
+                      style: AppTextStyles.labelMedium(context).copyWith(fontWeight: FontWeight.bold, fontSize: 13.sp),
                     ),
                     Text(
                       '${(state.progress * 100).toInt()}%',
-                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13.sp),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppDimensions.md.h),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusXs.r),
                   child: LinearProgressIndicator(
                     value: state.progress,
-                    backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
+                    backgroundColor: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
                     valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                    minHeight: 8,
+                    minHeight: 8.h,
                   ),
                 ),
               ],
@@ -103,12 +105,12 @@ class BulkExportTabView extends StatelessWidget {
 
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: EdgeInsets.all(AppDimensions.md.r),
             child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
+                mainAxisSpacing: AppDimensions.sm.h,
+                crossAxisSpacing: AppDimensions.sm.w,
               ),
               itemCount: state.selectedImages.length,
               itemBuilder: (context, index) {
@@ -128,14 +130,14 @@ class BulkExportTabView extends StatelessWidget {
         // Bottom Actions
         if (hasProcessed && !state.isProcessing)
           Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.all(AppDimensions.lg.r),
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
+                  blurRadius: AppDimensions.md.r,
+                  offset: Offset(0, -2.h),
                 ),
               ],
             ),
@@ -144,26 +146,26 @@ class BulkExportTabView extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: onSaveAll,
-                    icon: const Icon(Iconsax.gallery),
-                    label: Text(l10n.saveAll),
+                    icon: Icon(Iconsax.gallery, size: AppDimensions.iconSm.r),
+                    label: Text(l10n.saveAll, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      foregroundColor: AppColors.onPrimary,
+                      padding: EdgeInsets.symmetric(vertical: AppDimensions.lg.h),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r)),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: AppDimensions.md.w),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onExportZip,
-                    icon: const Icon(Iconsax.archive),
-                    label: Text(l10n.zip),
+                    icon: Icon(Iconsax.archive, size: AppDimensions.iconSm.r),
+                    label: Text(l10n.zip, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      side: const BorderSide(color: AppColors.primary),
+                      padding: EdgeInsets.symmetric(vertical: AppDimensions.lg.h),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r)),
+                      side: BorderSide(color: AppColors.primary, width: 1.r),
                       foregroundColor: AppColors.primary,
                     ),
                   ),
@@ -180,12 +182,19 @@ class BulkExportTabView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant)),
+        Text(
+          label,
+          style: AppTextStyles.labelSmall(context).copyWith(
+            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            fontSize: 11.sp,
+          ),
+        ),
         Text(
           value,
           style: AppTextStyles.labelMedium(context).copyWith(
             fontWeight: FontWeight.bold,
             color: valueColor ?? (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
+            fontSize: 12.sp,
           ),
         ),
       ],

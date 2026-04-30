@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
-import 'package:reducer/shared/widgets/app_button.dart';
+import 'package:reducer/common/widgets/app_button.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:iconsax/iconsax.dart';
 
@@ -64,6 +65,18 @@ class NoPlansState extends ConsumerWidget {
                     onPressed: () => ref.read(premiumControllerProvider.notifier).fetchOffersAndCheckStatus(),
                   ),
                 ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12.h,
+            left: 20.w,
+            child: IconButton(
+              onPressed: () => context.go('/'),
+              icon: const Icon(Icons.close, color: Colors.white),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                padding: EdgeInsets.all(12.r),
               ),
             ),
           ),

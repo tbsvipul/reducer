@@ -1,8 +1,9 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
+import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +19,12 @@ class ProfileScreen extends ConsumerWidget {
 
   Future<void> _pickAndUploadImage(BuildContext context, WidgetRef ref) async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+      maxWidth: 512,
+      maxHeight: 512,
+    );
     
     if (image != null) {
       final file = File(image.path);
@@ -50,9 +56,9 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authAsync = ref.watch(authProvider);
+    final authAsync = ref.watch(authStateChangesProvider);
     final userAsync = ref.watch(userProvider);
-    final isLoading = ref.watch(authControllerProvider);
+    final isLoading = ref.watch(authControllerProvider.select((state) => state.isLoading));
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
@@ -133,7 +139,7 @@ class ProfileScreen extends ConsumerWidget {
             Text(message, textAlign: TextAlign.center, style: AppTextStyles.bodyLarge(context)),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+              onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
               child: const Text('Go to Login'),
             ),
           ],
@@ -201,7 +207,7 @@ class ProfileScreen extends ConsumerWidget {
                       child: CircleAvatar(
                         radius: 54.r,
                         backgroundColor: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
-                        backgroundImage: user.profileImageUrl != null ? NetworkImage(user.profileImageUrl!) : null,
+                        backgroundImage: user.profileImageUrl != null ? CachedNetworkImageProvider(user.profileImageUrl!) as ImageProvider : null,
                         child: user.profileImageUrl == null
                           ? Text(
                               user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
@@ -451,7 +457,7 @@ class ProfileScreen extends ConsumerWidget {
           TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.stay)),
           TextButton(
             onPressed: () {
-              ref.read(authControllerProvider.notifier).logout();
+              ref.read(authControllerProvider.notifier).signOut();
               Navigator.pop(context);
             },
             child: Text(AppLocalizations.of(context)!.logOut, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),

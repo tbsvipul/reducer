@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:reducer/shared/widgets/common_app_bar.dart';
-import 'package:reducer/shared/widgets/common_bottom_nav_bar.dart';
+import 'package:reducer/common/widgets/common_app_bar.dart';
+import 'package:reducer/common/widgets/common_bottom_nav_bar.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class MainScreen extends StatelessWidget {
