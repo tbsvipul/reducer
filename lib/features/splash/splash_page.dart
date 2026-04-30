@@ -9,6 +9,8 @@ import 'package:reducer/l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reducer/core/routes/app_startup_provider.dart';
 
+import '../../core/theme/app_dimensions.dart';
+
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -82,102 +84,154 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF020617), // Deepest dark blue for premium feel
+      backgroundColor: const Color(0xFFF8FAFC), // Modern off-white background
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Optional: Subtle background pattern or vignette
+          // Background Gradient for a soft, premium feel
           Positioned.fill(
             child: Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.center,
-                  radius: 1.2,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF0F172A).withValues(alpha: 0.8),
-                    const Color(0xFF020617),
+                    Color(0xFFFFFFFF),
+                    Color(0xFFF0F7FF), // Extremely subtle blue tint
+                    Color(0xFFF8FAFC),
                   ],
                 ),
               ),
             ),
           ),
 
-          // Central Logo
+          // Optional: Subtle floating decorative elements
+          _buildDecorativeCircle(top: -50, right: -50, size: 200, opacity: 0.03),
+          _buildDecorativeCircle(bottom: 100, left: -30, size: 150, opacity: 0.02),
+
+          // Central Logo & Branding
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Hero(
                   tag: 'app_logo',
-                  child: Image.asset(
-                    'assets/logo/reducer_logo_bg.png',
-                    width: 180.r,
-                    height: 180.r,
-                    fit: BoxFit.contain,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withValues(alpha: 0.08),
+                          blurRadius: 40,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      'assets/logo/reducer_logo_bg.png',
+                      width: 160.r,
+                      height: 160.r,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 )
                     .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                    .scale(
-                      duration: 2000.ms,
-                      begin: const Offset(1, 1),
-                      end: const Offset(1.05, 1.05),
-                      curve: Curves.easeInOut,
-                    )
-                    .shimmer(delay: 3000.ms, duration: 1500.ms, color: Colors.white24),
+                    .moveY(begin: -5, end: 5, duration: 2500.ms, curve: Curves.easeInOut)
+                    .scale(begin: const Offset(1, 1), end: const Offset(1.02, 1.02), duration: 2500.ms, curve: Curves.easeInOut),
                 
-                SizedBox(height: 48.h),
+                SizedBox(height: 40.h),
                 
-                // Minimalist App Name (if not in logo)
+                // Minimalist App Name
                 Text(
                   AppLocalizations.of(context)!.appTitle,
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w200,
-                    letterSpacing: 12.w,
-                    fontSize: 24.sp,
+                    color: const Color(0xFF1E293B), // Slate 800
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 10.w,
+                    fontSize: 26.sp,
                   ),
                 )
                     .animate()
-                    .fadeIn(delay: 500.ms, duration: 1000.ms)
-                    .slideY(begin: 0.3, end: 0, delay: 500.ms, duration: 1000.ms, curve: Curves.easeOutCubic),
+                    .fadeIn(delay: 400.ms, duration: 800.ms)
+                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
+                
+                SizedBox(height: 8.h),
+                
+                Text(
+                  "IMAGE STUDIO",
+                  style: TextStyle(
+                    color: const Color(0xFF64748B), // Slate 500
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 4.w,
+                  ),
+                ).animate().fadeIn(delay: 800.ms, duration: 800.ms),
               ],
             ),
           ),
 
           // Bottom Loading / Status
           Positioned(
-            bottom: 60.h,
+            bottom: 80.h,
             left: 0,
             right: 0,
             child: Column(
               children: [
                 SizedBox(
-                  width: 40.w,
-                  height: 2.h,
-                  child: const LinearProgressIndicator(
-                    backgroundColor: Colors.white10,
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEAB308)),
+                  width: 60.w,
+                  height: 3.h,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusFull.r),
+                    child: const LinearProgressIndicator(
+                      backgroundColor: Color(0xFFE2E8F0), // Slate 200
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)), // Blue 500
+                    ),
                   ),
                 )
                     .animate()
                     .fadeIn(delay: 1000.ms)
-                    .scaleX(begin: 0, end: 1, delay: 1000.ms, duration: 800.ms),
-                SizedBox(height: 16.h),
+                    .scaleX(begin: 0, end: 1, duration: 600.ms),
+                SizedBox(height: 20.h),
                 Text(
-                  AppLocalizations.of(context)!.poweredByAi,
+                  AppLocalizations.of(context)!.poweredByAi.toUpperCase(),
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: const Color(0xFF94A3B8), // Slate 400
                     fontSize: 9.sp,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 2.w,
                   ),
-                ).animate().fadeIn(delay: 1500.ms),
+                ).animate().fadeIn(delay: 1400.ms),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildDecorativeCircle({
+    required double size,
+    required double opacity,
+    double? top,
+    double? bottom,
+    double? left,
+    double? right,
+  }) {
+    return Positioned(
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
+      child: Container(
+        width: size.r,
+        height: size.r,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF3B82F6).withValues(alpha: opacity),
+        ),
+      ),
+    ).animate(onPlay: (c) => c.repeat(reverse: true))
+      .move(begin: const Offset(-10, -10), end: const Offset(10, 10), duration: 5.seconds, curve: Curves.easeInOut);
   }
 }
 
