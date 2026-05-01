@@ -51,4 +51,3 @@ class ImageGridTile extends StatelessWidget {
     );
   }
 }
-

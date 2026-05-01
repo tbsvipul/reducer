@@ -34,19 +34,17 @@ class ProfileGuestState extends StatelessWidget {
             SizedBox(height: 32.h),
             Text(
               l10n.startSession,
-              style: AppTextStyles.headlineMedium(context).copyWith(
-                fontWeight: FontWeight.w900,
-                fontSize: 28.sp,
-              ),
+              style: AppTextStyles.headlineMedium(
+                context,
+              ).copyWith(fontWeight: FontWeight.w900, fontSize: 28.sp),
             ),
             SizedBox(height: 16.h),
             Text(
               l10n.signInBenefit,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyLarge(context).copyWith(
-                color: Colors.grey,
-                fontSize: 16.sp,
-              ),
+              style: AppTextStyles.bodyLarge(
+                context,
+              ).copyWith(color: Colors.grey, fontSize: 16.sp),
             ),
             SizedBox(height: 40.h),
             AppButton(

@@ -1,16 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:reducer/common/presentation/widgets/ads/native_ad_widget.dart';
+import 'package:reducer/common/widgets/app_button.dart';
 import 'package:reducer/core/models/image_settings.dart';
 import 'package:reducer/core/theme/app_colors.dart';
-import 'package:reducer/core/theme/app_theme.dart';
 import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
+import 'package:reducer/core/theme/app_theme.dart';
 import 'package:reducer/core/utils/target_dimension_calculator.dart';
-import 'package:reducer/common/widgets/app_button.dart';
 import 'package:reducer/l10n/app_localizations.dart';
-
-import 'package:reducer/common/presentation/widgets/ads/native_ad_widget.dart';
 
 class ExportTabContent extends StatefulWidget {
   final Uint8List? processedImageBytes;
@@ -53,6 +52,11 @@ class _ExportTabContentState extends State<ExportTabContent> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final previewHeight = clampDouble(
+      MediaQuery.sizeOf(context).height * 0.34,
+      240,
+      420,
+    );
 
     if (widget.processedImageBytes == null) {
       return Center(
@@ -63,25 +67,34 @@ class _ExportTabContentState extends State<ExportTabContent> {
               Icon(
                 Iconsax.info_circle,
                 size: AppDimensions.iconXl4,
-                color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                color: isDark
+                    ? AppColors.onDarkSurfaceVariant
+                    : AppColors.onLightSurfaceVariant,
               ),
               const SizedBox(height: AppDimensions.lg),
               Text(
-                'No processed image yet', // TODO: Add to l10n
+                l10n.processedImages,
                 style: AppTextStyles.titleMedium(context).copyWith(
-                  color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                  color: isDark
+                      ? AppColors.onDarkSurfaceVariant
+                      : AppColors.onLightSurfaceVariant,
                 ),
               ),
               const SizedBox(height: AppDimensions.xs),
               Text(
-                'Go to Settings tab and click "Process Image"', // TODO: Add to l10n
+                l10n.applyChangesMessage,
+                textAlign: TextAlign.center,
                 style: AppTextStyles.bodySmall(context).copyWith(
-                  color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                  color: isDark
+                      ? AppColors.onDarkSurfaceVariant
+                      : AppColors.onLightSurfaceVariant,
                 ),
               ),
               const SizedBox(height: AppDimensions.xl2),
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding),
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppDimensions.pagePadding,
+                ),
                 child: NativeAdWidget(size: NativeAdSize.medium),
               ),
             ],
@@ -100,18 +113,19 @@ class _ExportTabContentState extends State<ExportTabContent> {
             decoration: AppTheme.cardDecoration(context),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  runSpacing: AppDimensions.sm,
+                  spacing: AppDimensions.sm,
                   children: [
                     Text(
-                      _showBeforeImage
-                          ? 'Before (Original)'
-                          : 'After (Processed)',
-                      style: AppTextStyles.titleMedium(context).copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      _showBeforeImage ? l10n.showBefore : l10n.showAfter,
+                      style: AppTextStyles.titleMedium(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.bold),
                     ),
-                    ElevatedButton.icon(
+                    FilledButton.tonalIcon(
                       onPressed: () =>
                           setState(() => _showBeforeImage = !_showBeforeImage),
                       icon: Icon(
@@ -119,92 +133,91 @@ class _ExportTabContentState extends State<ExportTabContent> {
                         size: AppDimensions.iconSm,
                       ),
                       label: Text(
-                        _showBeforeImage ? 'Show After' : 'Show Before',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.onPrimary,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.lg,
-                          vertical: AppDimensions.md,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                        ),
+                        _showBeforeImage ? l10n.showAfter : l10n.showBefore,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: AppDimensions.md),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    GestureDetector(
-                      onPanStart: (_) =>
-                          setState(() => _showBeforeImage = true),
-                      onPanEnd: (_) => setState(() => _showBeforeImage = false),
-                      onLongPressStart: (_) =>
-                          setState(() => _showBeforeImage = true),
-                      onLongPressEnd: (_) =>
-                          setState(() => _showBeforeImage = false),
-                      child: RepaintBoundary(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                          child: Image.memory(
-                            _showBeforeImage
-                                ? (widget.originalThumbnail ??
-                                      widget.previewThumbnail ??
-                                      widget.processedImageBytes!)
-                                : (widget.previewThumbnail ??
-                                      widget.processedImageBytes!),
-                            height: 300,
-                            fit: BoxFit.contain,
-                            cacheWidth: 800,
-                            cacheHeight: 600,
-                            gaplessPlayback: true,
+                Semantics(
+                  label: l10n.processedImages,
+                  hint: l10n.showBefore,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      GestureDetector(
+                        onPanStart: (_) =>
+                            setState(() => _showBeforeImage = true),
+                        onPanEnd: (_) =>
+                            setState(() => _showBeforeImage = false),
+                        onLongPressStart: (_) =>
+                            setState(() => _showBeforeImage = true),
+                        onLongPressEnd: (_) =>
+                            setState(() => _showBeforeImage = false),
+                        child: RepaintBoundary(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusMd,
+                            ),
+                            child: Image.memory(
+                              _showBeforeImage
+                                  ? (widget.originalThumbnail ??
+                                        widget.previewThumbnail ??
+                                        widget.processedImageBytes!)
+                                  : (widget.previewThumbnail ??
+                                        widget.processedImageBytes!),
+                              height: previewHeight,
+                              width: double.infinity,
+                              fit: BoxFit.contain,
+                              cacheWidth: 800,
+                              cacheHeight: 600,
+                              gaplessPlayback: true,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    if (!_showBeforeImage)
-                      Positioned(
-                        bottom: AppDimensions.md,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.md,
-                            vertical: AppDimensions.xs,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.54),
-                            borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Iconsax.finger_scan,
-                                color: Colors.white,
-                                size: AppDimensions.iconSm,
+                      if (!_showBeforeImage)
+                        Positioned(
+                          bottom: AppDimensions.md,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimensions.md,
+                              vertical: AppDimensions.xs,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.54),
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.radiusXl,
                               ),
-                              const SizedBox(width: AppDimensions.sm),
-                              Text(
-                                'Hold image to compare',
-                                style: AppTextStyles.labelSmall(context).copyWith(
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Iconsax.finger_scan,
                                   color: Colors.white,
+                                  size: AppDimensions.iconSm,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: AppDimensions.sm),
+                                Text(
+                                  l10n.showBefore,
+                                  style: AppTextStyles.labelSmall(
+                                    context,
+                                  ).copyWith(color: Colors.white),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppDimensions.md),
                 Text(
-                  'Ready to Export!',
-                  style: AppTextStyles.headlineSmall(context).copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  l10n.readyToExport,
+                  style: AppTextStyles.headlineSmall(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: AppDimensions.md),
                 Container(
@@ -215,24 +228,28 @@ class _ExportTabContentState extends State<ExportTabContent> {
                   ),
                   child: Column(
                     children: [
-                      _exportInfoRow(context, 'Format', widget.settings.format.name),
+                      _exportInfoRow(
+                        context,
+                        l10n.formatLabel,
+                        widget.settings.format.name,
+                      ),
                       const SizedBox(height: AppDimensions.sm),
                       _exportInfoRow(
                         context,
-                        'Quality',
+                        l10n.imageQuality,
                         '${widget.settings.quality.toInt()}%',
                       ),
                       const SizedBox(height: AppDimensions.sm),
                       _exportInfoRow(
                         context,
-                        'Resolution',
+                        l10n.dimensions,
                         '${_selectedDimensions.width} x ${_selectedDimensions.height}',
                         valueColor: AppColors.primary,
                       ),
                       const SizedBox(height: AppDimensions.sm),
                       _exportInfoRow(
                         context,
-                        'File Size',
+                        l10n.targetFileSize,
                         _formatFileSize(widget.processedImageBytes!.length),
                         valueColor:
                             widget.processedImageBytes!.length <
@@ -245,7 +262,7 @@ class _ExportTabContentState extends State<ExportTabContent> {
                         const SizedBox(height: AppDimensions.sm),
                         _exportInfoRow(
                           context,
-                          'Size Reduced',
+                          l10n.spaceSaved,
                           '${((widget.originalSize - widget.processedImageBytes!.length) / widget.originalSize * 100).toStringAsFixed(1)}%',
                           valueColor: AppColors.success,
                         ),
@@ -263,6 +280,7 @@ class _ExportTabContentState extends State<ExportTabContent> {
                 child: AppButton(
                   label: l10n.saveToGallery,
                   icon: Iconsax.save_2,
+                  semanticLabel: l10n.saveToGallery,
                   onPressed: widget.onSave,
                   isFullWidth: true,
                 ),
@@ -272,6 +290,7 @@ class _ExportTabContentState extends State<ExportTabContent> {
                 child: AppButton(
                   label: l10n.share,
                   icon: Iconsax.share,
+                  semanticLabel: l10n.share,
                   onPressed: widget.onShare,
                   isFullWidth: true,
                 ),
@@ -283,22 +302,34 @@ class _ExportTabContentState extends State<ExportTabContent> {
     );
   }
 
-  Widget _exportInfoRow(BuildContext context, String label, String value, {Color? valueColor}) {
+  Widget _exportInfoRow(
+    BuildContext context,
+    String label,
+    String value, {
+    Color? valueColor,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: AppTextStyles.bodyMedium(context).copyWith(
-            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+        Flexible(
+          child: Text(
+            label,
+            style: AppTextStyles.bodyMedium(context).copyWith(
+              color: isDark
+                  ? AppColors.onDarkSurfaceVariant
+                  : AppColors.onLightSurfaceVariant,
+            ),
           ),
         ),
-        Text(
-          value,
-          style: AppTextStyles.bodyMedium(context).copyWith(
-            fontWeight: FontWeight.bold,
-            color: valueColor,
+        const SizedBox(width: AppDimensions.md),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(fontWeight: FontWeight.bold, color: valueColor),
           ),
         ),
       ],
@@ -312,4 +343,3 @@ class _ExportTabContentState extends State<ExportTabContent> {
     return '${mb.toStringAsFixed(2)} MB (${kb.toStringAsFixed(0)} KB)';
   }
 }
-

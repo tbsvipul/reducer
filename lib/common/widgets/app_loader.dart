@@ -25,9 +25,7 @@ class AppLoader extends StatelessWidget {
     if (style == AppLoaderStyle.fullscreen) {
       return Container(
         color: Colors.black.withValues(alpha: 0.5),
-        child: Center(
-          child: _buildLoaderContent(context),
-        ),
+        child: Center(child: _buildLoaderContent(context)),
       );
     }
 
@@ -53,9 +51,11 @@ class AppLoader extends StatelessWidget {
           Text(
             message!,
             style: AppTextStyles.bodyMedium(context).copyWith(
-              color: color ?? (Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.onDarkSurface 
-                  : AppColors.onLightSurface),
+              color:
+                  color ??
+                  (Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.onDarkSurface
+                      : AppColors.onLightSurface),
             ),
           ),
         ],

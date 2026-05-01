@@ -41,7 +41,8 @@ class GalleryEmptyState extends StatelessWidget {
             SizedBox(height: 12.h),
             Text(
               // ignore: undefined_getter
-              (l10n as dynamic).historyDescription ?? 'Your processed images will appear here.',
+              (l10n as dynamic).historyDescription ??
+                  'Your processed images will appear here.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),

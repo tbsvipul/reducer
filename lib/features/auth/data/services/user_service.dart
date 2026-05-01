@@ -81,6 +81,7 @@ class UserService {
     if (!doc.exists) return null;
     return AppUser.fromFirestore(doc);
   }
+
   /// Disables the user's account in Firestore.
   Future<void> disableAccount(String uid) async {
     await _usersCollection.doc(uid).update({

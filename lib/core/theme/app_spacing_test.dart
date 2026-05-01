@@ -40,4 +40,3 @@ class AppDimensions {
   static double get iconXl3 => 64.0;
   static double get iconXl4 => 80.0;
 }
-

@@ -1,6 +1,6 @@
 /// Design tokens for dimensions, spacing, radius, and elevation.
-/// 
-/// This class centralizes all numeric UI values to ensure consistency and 
+///
+/// This class centralizes all numeric UI values to ensure consistency and
 /// eliminate hardcoded values in widgets.
 abstract final class AppDimensions {
   // ── Spacing ───────────────────────────────────────────────────────────────────

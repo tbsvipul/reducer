@@ -12,11 +12,11 @@ class Debouncer {
 
   /// Execute the callback after the delay period
   /// Cancels any pending callback if called again before delay expires
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final debouncer = Debouncer();
-  /// 
+  ///
   /// Slider(
   ///   onChanged: (value) {
   ///     debouncer.call(() {
@@ -50,4 +50,3 @@ class Debouncer {
     _timer = null;
   }
 }
-

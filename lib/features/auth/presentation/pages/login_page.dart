@@ -10,6 +10,7 @@ import 'package:reducer/common/widgets/app_button.dart';
 import 'package:reducer/core/theme/app_colors.dart';
 import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
+import 'package:reducer/l10n/app_localizations.dart';
 
 /// Screen for user authentication via email or social providers.
 class LoginPage extends ConsumerStatefulWidget {
@@ -39,10 +40,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _login() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    await ref.read(authControllerProvider.notifier).signIn(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-        );
+    await ref
+        .read(authControllerProvider.notifier)
+        .signIn(_emailController.text.trim(), _passwordController.text);
   }
 
   void _togglePasswordVisibility() {
@@ -58,9 +58,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final authState = ref.watch(authControllerProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -83,9 +86,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _LoginHeader(),
+                _LoginHeader(l10n: l10n),
                 SizedBox(height: AppDimensions.xl5.h),
                 _LoginForm(
+                  l10n: l10n,
                   emailController: _emailController,
                   passwordController: _passwordController,
                   obscurePassword: _obscurePassword,
@@ -93,17 +97,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 SizedBox(height: AppDimensions.xl2.h),
                 AppButton(
-                  label: 'Login',
+                  label: l10n.login,
                   isFullWidth: true,
                   isLoading: authState.isLoading,
                   onPressed: _login,
                 ),
                 SizedBox(height: AppDimensions.xl2.h),
-                const _LoginDivider(),
+                _LoginDivider(l10n: l10n),
                 SizedBox(height: AppDimensions.xl2.h),
-                _SocialLoginSection(isLoading: authState.isLoading),
+                _SocialLoginSection(isLoading: authState.isLoading, l10n: l10n),
                 SizedBox(height: AppDimensions.xl4.h),
-                const _RegisterLink(),
+                _RegisterLink(l10n: l10n),
               ],
             ),
           ),
@@ -118,20 +122,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 // ─────────────────────────────────────────────
 
 class _LoginHeader extends StatelessWidget {
-  const _LoginHeader();
+  const _LoginHeader({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Welcome Back',
-          style: AppTextStyles.displaySmall(context),
-        ),
+        Text(l10n.welcomeBack, style: AppTextStyles.displaySmall(context)),
         SizedBox(height: AppDimensions.xs.h),
         Text(
-          'Sign in to your account to continue',
+          l10n.loginContinue,
           style: AppTextStyles.bodyMedium(context).copyWith(
             color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.onDarkSurfaceVariant
@@ -145,12 +148,14 @@ class _LoginHeader extends StatelessWidget {
 
 class _LoginForm extends StatelessWidget {
   const _LoginForm({
+    required this.l10n,
     required this.emailController,
     required this.passwordController,
     required this.obscurePassword,
     required this.onTogglePassword,
   });
 
+  final AppLocalizations l10n;
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final bool obscurePassword;
@@ -162,20 +167,18 @@ class _LoginForm extends StatelessWidget {
       children: [
         AppTextField(
           controller: emailController,
-          label: 'Email Address',
-          hint: 'enter your email',
+          label: l10n.emailAddress,
           prefix: Icon(Icons.email_outlined, size: AppDimensions.iconMd.r),
           keyboardType: TextInputType.emailAddress,
           validator: MultiValidator([
-            RequiredValidator(errorText: 'Email is required'),
-            EmailValidator(errorText: 'Enter a valid email address'),
+            RequiredValidator(errorText: l10n.pleaseEnterEmail),
+            EmailValidator(errorText: l10n.pleaseEnterValidEmail),
           ]).call,
         ),
         SizedBox(height: AppDimensions.xl.h),
         AppTextField(
           controller: passwordController,
-          label: 'Password',
-          hint: 'enter your password',
+          label: l10n.password,
           prefix: Icon(Icons.lock_outline, size: AppDimensions.iconMd.r),
           obscureText: obscurePassword,
           suffix: IconButton(
@@ -185,7 +188,9 @@ class _LoginForm extends StatelessWidget {
             ),
             onPressed: onTogglePassword,
           ),
-          validator: RequiredValidator(errorText: 'Password is required').call,
+          validator: RequiredValidator(
+            errorText: l10n.pleaseEnterPassword,
+          ).call,
         ),
         SizedBox(height: AppDimensions.sm.h),
         Align(
@@ -193,8 +198,10 @@ class _LoginForm extends StatelessWidget {
           child: TextButton(
             onPressed: () => context.push('/forgot-password'),
             child: Text(
-              'Forgot Password?',
-              style: AppTextStyles.labelLarge(context).copyWith(color: AppColors.primary),
+              l10n.forgotPassword,
+              style: AppTextStyles.labelLarge(
+                context,
+              ).copyWith(color: AppColors.primary),
             ),
           ),
         ),
@@ -204,7 +211,9 @@ class _LoginForm extends StatelessWidget {
 }
 
 class _LoginDivider extends StatelessWidget {
-  const _LoginDivider();
+  const _LoginDivider({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +227,7 @@ class _LoginDivider extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
           child: Text(
-            'OR',
+            l10n.or,
             style: AppTextStyles.labelSmall(context).copyWith(color: color),
           ),
         ),
@@ -229,43 +238,43 @@ class _LoginDivider extends StatelessWidget {
 }
 
 class _SocialLoginSection extends ConsumerWidget {
-  const _SocialLoginSection({required this.isLoading});
+  const _SocialLoginSection({required this.isLoading, required this.l10n});
 
   final bool isLoading;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return AppButton(
-      label: 'Continue with Google',
+      label: l10n.continueWithGoogle,
       style: AppButtonStyle.outline,
       isFullWidth: true,
       isLoading: isLoading,
       iconWidget: Image.asset('assets/logo/google_g.png', height: 24.r),
-      onPressed: () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
+      onPressed: () =>
+          ref.read(authControllerProvider.notifier).signInWithGoogle(),
     );
   }
 }
 
 class _RegisterLink extends StatelessWidget {
-  const _RegisterLink();
+  const _RegisterLink({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          "Don't have an account?",
-          style: AppTextStyles.bodyMedium(context),
-        ),
+        Text(l10n.dontHaveAccount, style: AppTextStyles.bodyMedium(context)),
         TextButton(
           onPressed: () => context.push('/register'),
           child: Text(
-            'Register',
-            style: AppTextStyles.labelLarge(context).copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-            ),
+            l10n.register,
+            style: AppTextStyles.labelLarge(
+              context,
+            ).copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
           ),
         ),
       ],

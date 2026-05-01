@@ -23,30 +23,30 @@ class HomeScreen extends ConsumerWidget {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-
             // Banner Ad
-            const SliverToBoxAdapter(
-              child: BannerAdWidget(),
-            ),
+            const SliverToBoxAdapter(child: BannerAdWidget()),
 
             // Main Content
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.xl, vertical: AppDimensions.lg),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.xl,
+                vertical: AppDimensions.lg,
+              ),
               sliver: SliverList(
                 delegate: SliverChildListDelegate.fixed([
                   if (!isPro) ...[
                     const PremiumPromoCard(),
                     const SizedBox(height: AppDimensions.xl2),
                   ],
-                  
+
                   // Interactive Quick Actions
                   const QuickActionsSection(),
-                  
+
                   const SizedBox(height: AppDimensions.xl3),
-                  
+
                   // Pro Tools Section
                   ProToolsSection(isPro: isPro, isLoggedIn: isLoggedIn),
-                  
+
                   const SizedBox(height: AppDimensions.xl3 * 2),
                 ]),
               ),
@@ -57,4 +57,3 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
-

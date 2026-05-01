@@ -46,7 +46,9 @@ class AppEmptyState extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: AppTextStyles.titleLarge(context).copyWith(
-                color: isDark ? AppColors.onDarkSurface : AppColors.onLightSurface,
+                color: isDark
+                    ? AppColors.onDarkSurface
+                    : AppColors.onLightSurface,
               ),
             ),
             SizedBox(height: AppDimensions.sm.h),
@@ -54,16 +56,14 @@ class AppEmptyState extends StatelessWidget {
               subtitle,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium(context).copyWith(
-                color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                color: isDark
+                    ? AppColors.onDarkSurfaceVariant
+                    : AppColors.onLightSurfaceVariant,
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
               SizedBox(height: AppDimensions.xl2.h),
-              AppButton(
-                label: actionLabel!,
-                onPressed: onAction,
-                width: 200.w,
-              ),
+              AppButton(label: actionLabel!, onPressed: onAction, width: 200.w),
             ],
           ],
         ),

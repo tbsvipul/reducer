@@ -19,14 +19,17 @@ class QuickActionsSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(context, l10n),
-        const _HeroActionCard(),
-        SizedBox(height: AppDimensions.lg.h),
-        _SecondaryActionsGrid(l10n: l10n),
-      ],
-    ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideY(begin: 0.1, end: 0);
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader(context, l10n),
+            const _HeroActionCard(),
+            SizedBox(height: AppDimensions.lg.h),
+            _SecondaryActionsGrid(l10n: l10n),
+          ],
+        )
+        .animate()
+        .fadeIn(delay: 100.ms, duration: 400.ms)
+        .slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildSectionHeader(BuildContext context, AppLocalizations l10n) {
@@ -38,10 +41,9 @@ class QuickActionsSection extends StatelessWidget {
           onPressed: () {}, // Future: Lead to a guide
           child: Text(
             l10n.howItWorks,
-            style: AppTextStyles.labelSmall(context).copyWith(
-              color: AppColors.primary,
-              fontSize: 11.sp,
-            ),
+            style: AppTextStyles.labelSmall(
+              context,
+            ).copyWith(color: AppColors.primary, fontSize: 11.sp),
           ),
         ),
       ],
@@ -106,16 +108,15 @@ class _HeroActionCard extends StatelessWidget {
         SizedBox(height: AppDimensions.md.h),
         Text(
           l10n.optimizeImage,
-          style: AppTextStyles.titleLarge(context).copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-          ),
+          style: AppTextStyles.titleLarge(
+            context,
+          ).copyWith(color: Colors.white, fontWeight: FontWeight.w800),
         ),
         Text(
           l10n.optimizeSubtitle,
-          style: AppTextStyles.bodySmall(context).copyWith(
-            color: Colors.white70,
-          ),
+          style: AppTextStyles.bodySmall(
+            context,
+          ).copyWith(color: Colors.white70),
         ),
       ],
     );
@@ -178,4 +179,3 @@ class _SecondaryActionsGrid extends StatelessWidget {
     );
   }
 }
-

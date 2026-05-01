@@ -31,7 +31,6 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final Widget content = Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -75,7 +74,7 @@ class AppButton extends StatelessWidget {
 
   Widget _buildButtonDecoration(BuildContext context, Widget child) {
     final decoration = _getBoxDecoration(context);
-    
+
     return Container(
       decoration: decoration,
       child: Material(
@@ -145,4 +144,3 @@ class AppButton extends StatelessWidget {
     }
   }
 }
-

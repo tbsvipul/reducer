@@ -24,7 +24,9 @@ import 'package:reducer/features/gallery/presentation/pages/bulk_history_detail_
 import 'package:reducer/features/gallery/data/models/history_item.dart';
 import 'package:reducer/features/localization/presentation/pages/language_selection_page.dart';
 
-final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'root',
+);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final notifier = ref.read(routerNotifierProvider);
@@ -43,7 +45,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SplashScreen(),
       ),
-      
+
       // -- MAIN SHELL ROUTES --
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -110,7 +112,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final item = state.extra as HistoryItem?;
           if (item == null) {
-            return const Scaffold(body: Center(child: Text('History item missing')));
+            return const Scaffold(
+              body: Center(child: Text('History item missing')),
+            );
           }
           return BulkHistoryDetailScreen(item: item);
         },
@@ -150,11 +154,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/language-selection',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          final isFromSettings = state.uri.queryParameters['fromSettings'] == 'true';
+          final isFromSettings =
+              state.uri.queryParameters['fromSettings'] == 'true';
           return LanguageSelectionPage(isFromSettings: isFromSettings);
         },
       ),
     ],
   );
 });
-

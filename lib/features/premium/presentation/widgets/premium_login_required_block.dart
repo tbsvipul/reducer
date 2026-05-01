@@ -7,7 +7,6 @@ import 'package:reducer/common/widgets/app_button.dart';
 import 'package:reducer/common/widgets/app_card.dart';
 import 'package:reducer/l10n/app_localizations.dart';
 
-
 class PremiumLoginRequiredBlock extends StatelessWidget {
   const PremiumLoginRequiredBlock({super.key});
 
@@ -20,9 +19,7 @@ class PremiumLoginRequiredBlock extends StatelessWidget {
       color: isDark
           ? AppColors.darkSurface.withValues(alpha: 0.92)
           : AppColors.lightSurface.withValues(alpha: 0.96),
-      border: Border.all(
-        color: AppColors.warning.withValues(alpha: 0.3),
-      ),
+      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -76,4 +73,3 @@ class PremiumLoginRequiredBlock extends StatelessWidget {
     );
   }
 }
-

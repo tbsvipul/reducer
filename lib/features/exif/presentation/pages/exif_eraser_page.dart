@@ -78,7 +78,8 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
       }
 
       final tempDir = await getTemporaryDirectory();
-      final targetPath = '${tempDir.path}/clean_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final targetPath =
+          '${tempDir.path}/clean_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       final result = await FlutterImageCompress.compressAndGetFile(
         _selectedImage!.path,
@@ -149,7 +150,8 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
         title: Text(l10n.exifEraser),
         centerTitle: false,
         actions: [
-          if (!isPro && !creditState.isLoading) _buildCreditBadge(creditState, l10n),
+          if (!isPro && !creditState.isLoading)
+            _buildCreditBadge(creditState, l10n),
         ],
       ),
       body: Column(
@@ -186,11 +188,16 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
   }
 
   Widget _buildCreditBadge(ExifCreditState creditState, AppLocalizations l10n) {
-    final color = creditState.availableCredits > 0 ? AppColors.success : AppColors.error;
+    final color = creditState.availableCredits > 0
+        ? AppColors.success
+        : AppColors.error;
     return Center(
       child: Container(
         margin: EdgeInsets.only(right: AppDimensions.md.w),
-        padding: EdgeInsets.symmetric(horizontal: AppDimensions.sm.w, vertical: AppDimensions.xs2.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppDimensions.sm.w,
+          vertical: AppDimensions.xs2.h,
+        ),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm.r),
@@ -212,10 +219,7 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
         children: [
           Icon(Iconsax.shield_tick, size: 64.r, color: AppColors.primary),
           SizedBox(height: AppDimensions.md.h),
-          Text(
-            l10n.privacyFirst,
-            style: AppTextStyles.titleLarge(context),
-          ),
+          Text(l10n.privacyFirst, style: AppTextStyles.titleLarge(context)),
           SizedBox(height: AppDimensions.xs.h),
           Text(
             l10n.privacyFirstDescription,
@@ -248,7 +252,9 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
             SizedBox(height: AppDimensions.md.h),
             Text(
               l10n.tapToSelectImage,
-              style: AppTextStyles.titleMedium(context).copyWith(color: AppColors.primary),
+              style: AppTextStyles.titleMedium(
+                context,
+              ).copyWith(color: AppColors.primary),
             ),
           ],
         ),
@@ -272,7 +278,11 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
               ),
             ),
             IconButton(
-              icon: Icon(Iconsax.close_circle, color: AppColors.error, size: 24.r),
+              icon: Icon(
+                Iconsax.close_circle,
+                color: AppColors.error,
+                size: 24.r,
+              ),
               onPressed: () => setState(() => _selectedImage = null),
             ),
           ],
@@ -288,4 +298,3 @@ class _ExifEraserScreenState extends ConsumerState<ExifEraserScreen> {
     );
   }
 }
-

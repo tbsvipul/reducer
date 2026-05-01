@@ -10,6 +10,8 @@ import 'package:reducer/common/widgets/app_button.dart';
 import 'package:reducer/core/theme/app_colors.dart';
 import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
+import 'package:reducer/core/exceptions/auth_exception.dart';
+import 'package:reducer/l10n/app_localizations.dart';
 
 /// Screen for new user registration.
 class RegisterPage extends ConsumerStatefulWidget {
@@ -43,9 +45,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Future<void> _register() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    await ref.read(authControllerProvider.notifier).signUp(
+    await ref
+        .read(authControllerProvider.notifier)
+        .signUp(
           _emailController.text.trim(),
-          _passwordController.text.trim(),
+          _passwordController.text,
           _nameController.text.trim(),
         );
   }
@@ -60,12 +64,32 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authControllerProvider, (previous, next) {
+      if (!next.isLoading && next.hasError) {
+        final error = next.error;
+        if (error is AuthException && error.code == 'email-already-in-use') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          debugPrint('[RegisterPage] Error: $error');
+        }
+      }
+    });
+
     final authState = ref.watch(authControllerProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -89,9 +113,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _RegisterHeader(),
+                _RegisterHeader(l10n: l10n),
                 SizedBox(height: AppDimensions.xl3.h),
                 _RegisterForm(
+                  l10n: l10n,
                   nameController: _nameController,
                   emailController: _emailController,
                   passwordController: _passwordController,
@@ -101,17 +126,20 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 ),
                 SizedBox(height: AppDimensions.xl4.h),
                 AppButton(
-                  label: 'Register',
+                  label: l10n.register,
                   isFullWidth: true,
                   isLoading: authState.isLoading,
                   onPressed: _register,
                 ),
                 SizedBox(height: AppDimensions.xl2.h),
-                const _RegisterDivider(),
+                _RegisterDivider(l10n: l10n),
                 SizedBox(height: AppDimensions.xl2.h),
-                _SocialRegisterSection(isLoading: authState.isLoading),
+                _SocialRegisterSection(
+                  isLoading: authState.isLoading,
+                  l10n: l10n,
+                ),
                 SizedBox(height: AppDimensions.xl2.h),
-                const _LoginLink(),
+                _LoginLink(l10n: l10n),
               ],
             ),
           ),
@@ -126,20 +154,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 // ─────────────────────────────────────────────
 
 class _RegisterHeader extends StatelessWidget {
-  const _RegisterHeader();
+  const _RegisterHeader({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Create Account',
-          style: AppTextStyles.displaySmall(context),
-        ),
+        Text(l10n.createAccount, style: AppTextStyles.displaySmall(context)),
         SizedBox(height: AppDimensions.xs.h),
         Text(
-          'Fill in your details to get started',
+          l10n.joinAndStart,
           style: AppTextStyles.bodyMedium(context).copyWith(
             color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.onDarkSurfaceVariant
@@ -153,6 +180,7 @@ class _RegisterHeader extends StatelessWidget {
 
 class _RegisterForm extends StatelessWidget {
   const _RegisterForm({
+    required this.l10n,
     required this.nameController,
     required this.emailController,
     required this.passwordController,
@@ -161,6 +189,7 @@ class _RegisterForm extends StatelessWidget {
     required this.onTogglePassword,
   });
 
+  final AppLocalizations l10n;
   final TextEditingController nameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
@@ -174,28 +203,25 @@ class _RegisterForm extends StatelessWidget {
       children: [
         AppTextField(
           controller: nameController,
-          label: 'Full Name',
-          hint: 'enter your name',
+          label: l10n.fullName,
           prefix: Icon(Icons.person_outline, size: AppDimensions.iconMd.r),
-          validator: RequiredValidator(errorText: 'Full name is required').call,
+          validator: RequiredValidator(errorText: l10n.pleaseEnterName).call,
         ),
         SizedBox(height: AppDimensions.xl.h),
         AppTextField(
           controller: emailController,
-          label: 'Email Address',
-          hint: 'enter your email',
+          label: l10n.emailAddress,
           prefix: Icon(Icons.email_outlined, size: AppDimensions.iconMd.r),
           keyboardType: TextInputType.emailAddress,
           validator: MultiValidator([
-            RequiredValidator(errorText: 'Email is required'),
-            EmailValidator(errorText: 'Enter a valid email address'),
+            RequiredValidator(errorText: l10n.pleaseEnterEmail),
+            EmailValidator(errorText: l10n.pleaseEnterValidEmail),
           ]).call,
         ),
         SizedBox(height: AppDimensions.xl.h),
         AppTextField(
           controller: passwordController,
-          label: 'Password',
-          hint: 'create a password',
+          label: l10n.password,
           prefix: Icon(Icons.lock_outline, size: AppDimensions.iconMd.r),
           obscureText: obscurePassword,
           suffix: IconButton(
@@ -206,19 +232,19 @@ class _RegisterForm extends StatelessWidget {
             onPressed: onTogglePassword,
           ),
           validator: MultiValidator([
-            RequiredValidator(errorText: 'Password is required'),
-            MinLengthValidator(6, errorText: 'Password must be at least 6 characters long'),
+            RequiredValidator(errorText: l10n.pleaseEnterPassword),
+            MinLengthValidator(8, errorText: l10n.passwordLengthErrorRegister),
           ]).call,
         ),
         SizedBox(height: AppDimensions.xl.h),
         AppTextField(
           controller: confirmPasswordController,
           label: 'Confirm Password',
-          hint: 'repeat your password',
           prefix: Icon(Icons.lock_outline, size: AppDimensions.iconMd.r),
           obscureText: obscurePassword,
-          validator: (val) => MatchValidator(errorText: 'Passwords do not match')
-              .validateMatch(val ?? '', passwordController.text),
+          validator: (val) => MatchValidator(
+            errorText: 'Passwords do not match',
+          ).validateMatch(val ?? '', passwordController.text),
         ),
       ],
     );
@@ -226,7 +252,9 @@ class _RegisterForm extends StatelessWidget {
 }
 
 class _RegisterDivider extends StatelessWidget {
-  const _RegisterDivider();
+  const _RegisterDivider({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +268,7 @@ class _RegisterDivider extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
           child: Text(
-            'OR',
+            l10n.or,
             style: AppTextStyles.labelSmall(context).copyWith(color: color),
           ),
         ),
@@ -251,43 +279,43 @@ class _RegisterDivider extends StatelessWidget {
 }
 
 class _SocialRegisterSection extends ConsumerWidget {
-  const _SocialRegisterSection({required this.isLoading});
+  const _SocialRegisterSection({required this.isLoading, required this.l10n});
 
   final bool isLoading;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return AppButton(
-      label: 'Sign up with Google',
+      label: l10n.registerWithGoogle,
       style: AppButtonStyle.outline,
       isFullWidth: true,
       isLoading: isLoading,
       iconWidget: Image.asset('assets/logo/google_g.png', height: 24.r),
-      onPressed: () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
+      onPressed: () =>
+          ref.read(authControllerProvider.notifier).signInWithGoogle(),
     );
   }
 }
 
 class _LoginLink extends StatelessWidget {
-  const _LoginLink();
+  const _LoginLink({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          "Already have an account?",
-          style: AppTextStyles.bodyMedium(context),
-        ),
+        Text(l10n.alreadyHaveAccount, style: AppTextStyles.bodyMedium(context)),
         TextButton(
           onPressed: () => context.pop(),
           child: Text(
-            'Login',
-            style: AppTextStyles.labelLarge(context).copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-            ),
+            l10n.login,
+            style: AppTextStyles.labelLarge(
+              context,
+            ).copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
           ),
         ),
       ],

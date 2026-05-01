@@ -58,7 +58,8 @@ class SingleImageState {
       previewThumbnail: previewThumbnail ?? this.previewThumbnail,
       processedImageBytes: processedImageBytes ?? this.processedImageBytes,
       settings: settings ?? this.settings,
-      isGeneratingThumbnail: isGeneratingThumbnail ?? this.isGeneratingThumbnail,
+      isGeneratingThumbnail:
+          isGeneratingThumbnail ?? this.isGeneratingThumbnail,
       isProcessingPreview: isProcessingPreview ?? this.isProcessingPreview,
       isProcessingFinal: isProcessingFinal ?? this.isProcessingFinal,
       originalSize: originalSize ?? this.originalSize,
@@ -77,10 +78,10 @@ class SingleImageController extends _$SingleImageController {
 
   Future<void> pickImage(ImageSource source, AppLocalizations l10n) async {
     state = state.copyWith(isGeneratingThumbnail: true);
-    
+
     final picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(source: source);
-    
+
     if (pickedFile == null) {
       state = state.copyWith(isGeneratingThumbnail: false);
       return;
@@ -88,11 +89,11 @@ class SingleImageController extends _$SingleImageController {
 
     final bytes = await pickedFile.readAsBytes();
     final validation = await ImageValidator.validateImage(bytes, l10n);
-    
+
     if (!validation.isValid) {
       state = state.copyWith(isGeneratingThumbnail: false);
       // We return the validation result to the UI so it can show the error dialog
-      throw validation; 
+      throw validation;
     }
 
     final thumbnail = await ThumbnailGenerator.generateThumbnailFromXFile(
@@ -122,7 +123,7 @@ class SingleImageController extends _$SingleImageController {
     if (state.originalThumbnail == null) return;
 
     state = state.copyWith(isProcessingPreview: true);
-    
+
     final result = await ImageProcessor.processImageThumbnail(
       state.originalThumbnail!,
       state.settings,
@@ -141,14 +142,14 @@ class SingleImageController extends _$SingleImageController {
 
   Future<void> processFinalImage() async {
     if (state.originalFile == null) return;
-    
+
     state = state.copyWith(isProcessingFinal: true);
-    
+
     final resultFile = await ImageProcessor.processImage(
       state.originalFile!,
       state.settings,
     );
-    
+
     if (resultFile != null) {
       final bytes = await resultFile.readAsBytes();
       state = state.copyWith(
@@ -162,4 +163,3 @@ class SingleImageController extends _$SingleImageController {
 }
 
 final singleImageTabIndexProvider = StateProvider.autoDispose<int>((ref) => 0);
-

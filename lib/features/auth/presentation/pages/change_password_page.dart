@@ -34,11 +34,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
 
   Future<void> _changePassword() async {
     if (_formKey.currentState?.validate() ?? false) {
-      await ref.read(authControllerProvider.notifier).changePassword(
+      await ref
+          .read(authControllerProvider.notifier)
+          .changePassword(
             _currentPasswordController.text,
             _newPasswordController.text,
           );
-      
+
       if (mounted) {
         final state = ref.read(authControllerProvider);
         if (state.hasError) {
@@ -61,14 +63,19 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       appBar: AppBar(
         title: const Text('Change Password'),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -80,7 +87,10 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding, vertical: AppDimensions.lg),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.pagePadding,
+            vertical: AppDimensions.lg,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -88,13 +98,17 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
               children: [
                 Text(
                   'Update Password',
-                  style: AppTextStyles.titleLarge(context).copyWith(fontWeight: FontWeight.bold),
+                  style: AppTextStyles.titleLarge(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: AppDimensions.xs),
                 Text(
                   'For security, please enter your current password before choosing a new one.',
                   style: AppTextStyles.bodySmall(context).copyWith(
-                    color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                    color: isDark
+                        ? AppColors.onDarkSurfaceVariant
+                        : AppColors.onLightSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: AppDimensions.xl2),
@@ -104,22 +118,33 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   hint: 'enter current password',
                   prefix: Icon(Icons.lock_open, size: AppDimensions.iconSm.r),
                   obscureText: _obscureText,
-                  validator: RequiredValidator(errorText: 'Current password is required').call,
+                  validator: RequiredValidator(
+                    errorText: 'Current password is required',
+                  ).call,
                 ),
                 const SizedBox(height: AppDimensions.lg),
                 AppTextField(
                   controller: _newPasswordController,
                   label: 'New Password',
                   hint: 'enter new password',
-                  prefix: Icon(Icons.lock_outline, size: AppDimensions.iconSm.r),
+                  prefix: Icon(
+                    Icons.lock_outline,
+                    size: AppDimensions.iconSm.r,
+                  ),
                   obscureText: _obscureText,
                   suffix: IconButton(
-                    icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscureText = !_obscureText),
+                    icon: Icon(
+                      _obscureText ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscureText = !_obscureText),
                   ),
                   validator: MultiValidator([
                     RequiredValidator(errorText: 'New password is required'),
-                    MinLengthValidator(6, errorText: 'Password must be at least 6 characters long'),
+                    MinLengthValidator(
+                      6,
+                      errorText: 'Password must be at least 6 characters long',
+                    ),
                   ]).call,
                 ),
                 const SizedBox(height: AppDimensions.lg),
@@ -127,10 +152,14 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   controller: _confirmPasswordController,
                   label: 'Confirm New Password',
                   hint: 'repeat new password',
-                  prefix: Icon(Icons.lock_outline, size: AppDimensions.iconSm.r),
+                  prefix: Icon(
+                    Icons.lock_outline,
+                    size: AppDimensions.iconSm.r,
+                  ),
                   obscureText: _obscureText,
-                  validator: (val) => MatchValidator(errorText: 'Passwords do not match')
-                      .validateMatch(val ?? '', _newPasswordController.text),
+                  validator: (val) => MatchValidator(
+                    errorText: 'Passwords do not match',
+                  ).validateMatch(val ?? '', _newPasswordController.text),
                 ),
                 const SizedBox(height: AppDimensions.xl3),
                 SizedBox(
@@ -141,12 +170,22 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.onPrimary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMd,
+                        ),
+                      ),
                       elevation: 0,
                     ),
                     child: authState.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Update Password', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        : const Text(
+                            'Update Password',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],

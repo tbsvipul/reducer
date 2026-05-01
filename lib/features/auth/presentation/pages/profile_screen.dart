@@ -25,11 +25,13 @@ class ProfileScreen extends ConsumerWidget {
       maxWidth: 512,
       maxHeight: 512,
     );
-    
+
     if (image != null) {
       final file = File(image.path);
       try {
-        await ref.read(authControllerProvider.notifier).updateProfileImage(file);
+        await ref
+            .read(authControllerProvider.notifier)
+            .updateProfileImage(file);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -43,7 +45,9 @@ class ProfileScreen extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.uploadFailed(e.toString())),
+              content: Text(
+                AppLocalizations.of(context)!.uploadFailed(e.toString()),
+              ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
             ),
@@ -58,17 +62,23 @@ class ProfileScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final authAsync = ref.watch(authStateChangesProvider);
     final userAsync = ref.watch(userProvider);
-    final isLoading = ref.watch(authControllerProvider.select((state) => state.isLoading));
+    final isLoading = ref.watch(
+      authControllerProvider.select((state) => state.isLoading),
+    );
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       body: authAsync.when(
         data: (auth) {
           if (auth == null || auth.isAnonymous) {
             // Trigger redirect if not already happening
             Future.microtask(() {
               if (context.mounted) {
-                context.go('/login?redirect=${Uri.encodeComponent('/profile')}');
+                context.go(
+                  '/login?redirect=${Uri.encodeComponent('/profile')}',
+                );
               }
             });
             return _buildLoadingState(context, 'Redirecting to login...');
@@ -77,7 +87,11 @@ class ProfileScreen extends ConsumerWidget {
           return userAsync.when(
             data: (user) {
               if (user == null) {
-                return _buildErrorState(context, 'Profile data not found. Please try logging in again.', ref);
+                return _buildErrorState(
+                  context,
+                  'Profile data not found. Please try logging in again.',
+                  ref,
+                );
               }
 
               return CustomScrollView(
@@ -86,7 +100,10 @@ class ProfileScreen extends ConsumerWidget {
                   _buildSliverHeader(context, ref, user, isDark, isLoading),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xl,
+                        vertical: AppSpacing.xl,
+                      ),
                       child: Column(
                         children: [
                           _buildStatsGrid(context, user, isDark),
@@ -104,12 +121,16 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               );
             },
-            loading: () => _buildLoadingState(context, 'Loading profile details...'),
-            error: (e, s) => _buildErrorState(context, 'Error loading profile: $e', ref),
+            loading: () =>
+                _buildLoadingState(context, 'Loading profile details...'),
+            error: (e, s) =>
+                _buildErrorState(context, 'Error loading profile: $e', ref),
           );
         },
-        loading: () => _buildLoadingState(context, 'Checking authentication...'),
-        error: (e, s) => _buildErrorState(context, 'Authentication error: $e', ref),
+        loading: () =>
+            _buildLoadingState(context, 'Checking authentication...'),
+        error: (e, s) =>
+            _buildErrorState(context, 'Authentication error: $e', ref),
       ),
     );
   }
@@ -121,7 +142,12 @@ class ProfileScreen extends ConsumerWidget {
         children: [
           const CircularProgressIndicator(color: AppColors.primary),
           const SizedBox(height: 20),
-          Text(message, style: AppTextStyles.bodyMedium(context).copyWith(color: Colors.grey)),
+          Text(
+            message,
+            style: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(color: Colors.grey),
+          ),
         ],
       ),
     );
@@ -136,10 +162,15 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             const Icon(Iconsax.danger, size: 64, color: AppColors.error),
             const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center, style: AppTextStyles.bodyLarge(context)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyLarge(context),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+              onPressed: () =>
+                  ref.read(authControllerProvider.notifier).signOut(),
               child: const Text('Go to Login'),
             ),
           ],
@@ -148,15 +179,26 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSliverHeader(BuildContext context, WidgetRef ref, user, bool isDark, bool isLoading) {
+  Widget _buildSliverHeader(
+    BuildContext context,
+    WidgetRef ref,
+    user,
+    bool isDark,
+    bool isLoading,
+  ) {
     return SliverAppBar(
       expandedHeight: 280.h,
       pinned: true,
       stretch: true,
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
-        stretchModes: const [StretchMode.zoomBackground, StretchMode.blurBackground],
+        stretchModes: const [
+          StretchMode.zoomBackground,
+          StretchMode.blurBackground,
+        ],
         background: Stack(
           alignment: Alignment.center,
           children: [
@@ -166,25 +208,31 @@ class ProfileScreen extends ConsumerWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topRight,
                   end: Alignment.bottomLeft,
-                  colors: isDark 
-                    ? [AppColors.darkSurface, AppColors.darkBackground]
-                    : [const Color(0xFFE2E8F0), AppColors.lightBackground],
+                  colors: isDark
+                      ? [AppColors.darkSurface, AppColors.darkBackground]
+                      : [const Color(0xFFE2E8F0), AppColors.lightBackground],
                 ),
               ),
             ),
-            
+
             // Decorative Blur Circles
             Positioned(
               top: -50.h,
               right: -50.w,
-              child: Container(
-                width: 200.r,
-                height: 200.r,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.05),
-                ),
-              ).animate().scale(duration: 2.seconds, curve: Curves.easeInOut).fadeIn(),
+              child:
+                  Container(
+                        width: 200.r,
+                        height: 200.r,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primary.withValues(
+                            alpha: isDark ? 0.1 : 0.05,
+                          ),
+                        ),
+                      )
+                      .animate()
+                      .scale(duration: 2.seconds, curve: Curves.easeInOut)
+                      .fadeIn(),
             ),
 
             // Profile Main Info
@@ -206,31 +254,48 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       child: CircleAvatar(
                         radius: 54.r,
-                        backgroundColor: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
-                        backgroundImage: user.profileImageUrl != null ? CachedNetworkImageProvider(user.profileImageUrl!) as ImageProvider : null,
+                        backgroundColor: isDark
+                            ? AppColors.darkSurfaceVariant
+                            : AppColors.lightSurfaceVariant,
+                        backgroundImage: user.profileImageUrl != null
+                            ? CachedNetworkImageProvider(user.profileImageUrl!)
+                                  as ImageProvider
+                            : null,
                         child: user.profileImageUrl == null
-                          ? Text(
-                              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                              style: AppTextStyles.headlineLarge(context).copyWith(
-                                color: isDark ? Colors.white : AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : null,
+                            ? Text(
+                                user.name.isNotEmpty
+                                    ? user.name[0].toUpperCase()
+                                    : 'U',
+                                style: AppTextStyles.headlineLarge(context)
+                                    .copyWith(
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              )
+                            : null,
                       ),
-                    ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
-                    
+                    ).animate().scale(
+                      duration: 600.ms,
+                      curve: Curves.easeOutBack,
+                    ),
+
                     Positioned(
                       bottom: 0,
                       right: 0,
                       child: GestureDetector(
-                        onTap: isLoading ? null : () => _pickAndUploadImage(context, ref),
+                        onTap: isLoading
+                            ? null
+                            : () => _pickAndUploadImage(context, ref),
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: const BoxDecoration(
                             color: AppColors.primary,
                             shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+                            boxShadow: [
+                              BoxShadow(color: Colors.black26, blurRadius: 8),
+                            ],
                           ),
                           child: Icon(
                             isLoading ? Icons.sync : Iconsax.camera,
@@ -245,15 +310,16 @@ class ProfileScreen extends ConsumerWidget {
                 SizedBox(height: 20.h),
                 Text(
                   user.name,
-                  style: AppTextStyles.headlineSmall(context).copyWith(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                  ),
+                  style: AppTextStyles.headlineSmall(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
                 ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
                 Text(
                   user.email,
                   style: AppTextStyles.bodyMedium(context).copyWith(
-                    color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                    color: isDark
+                        ? AppColors.onDarkSurfaceVariant
+                        : AppColors.onLightSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
@@ -279,7 +345,7 @@ class ProfileScreen extends ConsumerWidget {
         ),
         const SizedBox(width: AppSpacing.lg),
         Expanded(
-            child: _StatsTile(
+          child: _StatsTile(
             label: AppLocalizations.of(context)!.memberSince,
             value: "${user.createdAt.year}",
             icon: Iconsax.calendar_tick,
@@ -296,30 +362,52 @@ class ProfileScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: isPro ? const LinearGradient(
-          colors: [Color(0xFF1E293B), AppColors.darkBackground],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ) : null,
-        color: !isPro ? (isDark ? AppColors.darkSurface : AppColors.lightSurface) : null,
+        gradient: isPro
+            ? const LinearGradient(
+                colors: [Color(0xFF1E293B), AppColors.darkBackground],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: !isPro
+            ? (isDark ? AppColors.darkSurface : AppColors.lightSurface)
+            : null,
         borderRadius: BorderRadius.circular(28.r),
         border: Border.all(
-          color: isPro ? const Color(0xFFFACC15).withValues(alpha: 0.2) : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          color: isPro
+              ? const Color(0xFFFACC15).withValues(alpha: 0.2)
+              : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
           width: 1,
         ),
-        boxShadow: !isDark && !isPro ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 10))] : null,
+        boxShadow: !isDark && !isPro
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ]
+            : null,
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: (isPro ? const Color(0xFFFACC15) : AppColors.onLightSurfaceVariant).withValues(alpha: 0.1),
+              color:
+                  (isPro
+                          ? const Color(0xFFFACC15)
+                          : AppColors.onLightSurfaceVariant)
+                      .withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isPro ? Iconsax.crown : Iconsax.user,
-              color: isPro ? const Color(0xFFFACC15) : (isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+              color: isPro
+                  ? const Color(0xFFFACC15)
+                  : (isDark
+                        ? AppColors.onDarkSurfaceVariant
+                        : AppColors.onLightSurfaceVariant),
               size: 28.r,
             ),
           ),
@@ -329,16 +417,26 @@ class ProfileScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isPro ? AppLocalizations.of(context)!.proActive : AppLocalizations.of(context)!.freeMember,
+                  isPro
+                      ? AppLocalizations.of(context)!.proActive
+                      : AppLocalizations.of(context)!.freeMember,
                   style: AppTextStyles.titleLarge(context).copyWith(
                     fontWeight: FontWeight.w900,
-                    color: isPro ? Colors.white : (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
+                    color: isPro
+                        ? Colors.white
+                        : (isDark
+                              ? AppColors.onDarkSurface
+                              : AppColors.onLightSurface),
                   ),
                 ),
                 Text(
-                  isPro ? AppLocalizations.of(context)!.fullAccessUnlocked : AppLocalizations.of(context)!.basicToolsEnabled,
+                  isPro
+                      ? AppLocalizations.of(context)!.fullAccessUnlocked
+                      : AppLocalizations.of(context)!.basicToolsEnabled,
                   style: AppTextStyles.bodyMedium(context).copyWith(
-                    color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                    color: isDark
+                        ? AppColors.onDarkSurfaceVariant
+                        : AppColors.onLightSurfaceVariant,
                   ),
                 ),
               ],
@@ -350,11 +448,13 @@ class ProfileScreen extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: Text(AppLocalizations.of(context)!.goPro),
             )
-          else 
+          else
             IconButton(
               onPressed: () => context.push('/premium'),
               icon: const Icon(Iconsax.arrow_right_3, color: Colors.white24),
@@ -364,30 +464,39 @@ class ProfileScreen extends ConsumerWidget {
     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildSettingsSection(BuildContext context, WidgetRef ref, bool isDark) {
+  Widget _buildSettingsSection(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionLabel(label: AppLocalizations.of(context)!.preferences, isDark: isDark),
+        _SectionLabel(
+          label: AppLocalizations.of(context)!.preferences,
+          isDark: isDark,
+        ),
         const SizedBox(height: AppSpacing.lg),
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            ),
           ),
-          child: Column(
-            children: [
-              _ThemeSegmentedPicker(isDark: isDark),
-            ],
-          ),
+          child: Column(children: [_ThemeSegmentedPicker(isDark: isDark)]),
         ),
       ],
     ).animate().fadeIn(delay: 600.ms);
   }
 
-  Widget _buildAccountActions(BuildContext context, WidgetRef ref, bool isDark) {
+  Widget _buildAccountActions(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+  ) {
     return Column(
       children: [
         _ProfileTile(
@@ -409,7 +518,9 @@ class ProfileScreen extends ConsumerWidget {
         Text(
           AppLocalizations.of(context)!.appVersionLabel("1.5.0"),
           style: TextStyle(
-            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            color: isDark
+                ? AppColors.onDarkSurfaceVariant
+                : AppColors.onLightSurfaceVariant,
             fontSize: 11.sp,
             fontWeight: FontWeight.w600,
           ),
@@ -425,7 +536,10 @@ class ProfileScreen extends ConsumerWidget {
         title: Text(AppLocalizations.of(context)!.deleteAccount),
         content: Text(AppLocalizations.of(context)!.deleteAccountConfirmation),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.cancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -434,13 +548,22 @@ class ProfileScreen extends ConsumerWidget {
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+                    SnackBar(
+                      content: Text(e.toString()),
+                      backgroundColor: Colors.redAccent,
+                    ),
                   );
                   Navigator.pop(context);
                 }
               }
             },
-            child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text(
+              AppLocalizations.of(context)!.delete,
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -454,19 +577,27 @@ class ProfileScreen extends ConsumerWidget {
         title: Text(AppLocalizations.of(context)!.logOut),
         content: Text(AppLocalizations.of(context)!.logOutConfirmation),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.stay)),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.stay),
+          ),
           TextButton(
             onPressed: () {
               ref.read(authControllerProvider.notifier).signOut();
               Navigator.pop(context);
             },
-            child: Text(AppLocalizations.of(context)!.logOut, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text(
+              AppLocalizations.of(context)!.logOut,
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
-
 }
 
 class _StatsTile extends StatelessWidget {
@@ -476,7 +607,13 @@ class _StatsTile extends StatelessWidget {
   final Color color;
   final bool isDark;
 
-  const _StatsTile({required this.label, required this.value, required this.icon, required this.color, required this.isDark});
+  const _StatsTile({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -485,8 +622,18 @@ class _StatsTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
-        boxShadow: !isDark ? [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 5))] : null,
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+        ),
+        boxShadow: !isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ]
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,11 +649,15 @@ class _StatsTile extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             value,
-            style: AppTextStyles.headlineSmall(context).copyWith(fontWeight: FontWeight.w900),
+            style: AppTextStyles.headlineSmall(
+              context,
+            ).copyWith(fontWeight: FontWeight.w900),
           ),
           Text(
             label,
-            style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? Colors.white54 : Colors.black45),
+            style: AppTextStyles.labelSmall(
+              context,
+            ).copyWith(color: isDark ? Colors.white54 : Colors.black45),
           ),
         ],
       ),
@@ -547,12 +698,25 @@ class _ThemeSegmentedPicker extends ConsumerWidget {
       width: double.infinity,
       child: SegmentedButton<ThemeMode>(
         segments: [
-          ButtonSegment(value: ThemeMode.light, label: Text(AppLocalizations.of(context)!.light), icon: const Icon(Iconsax.sun_1, size: 16)),
-          ButtonSegment(value: ThemeMode.system, label: Text(AppLocalizations.of(context)!.auto), icon: const Icon(Iconsax.setting, size: 16)),
-          ButtonSegment(value: ThemeMode.dark, label: Text(AppLocalizations.of(context)!.dark), icon: const Icon(Iconsax.moon, size: 16)),
+          ButtonSegment(
+            value: ThemeMode.light,
+            label: Text(AppLocalizations.of(context)!.light),
+            icon: const Icon(Iconsax.sun_1, size: 16),
+          ),
+          ButtonSegment(
+            value: ThemeMode.system,
+            label: Text(AppLocalizations.of(context)!.auto),
+            icon: const Icon(Iconsax.setting, size: 16),
+          ),
+          ButtonSegment(
+            value: ThemeMode.dark,
+            label: Text(AppLocalizations.of(context)!.dark),
+            icon: const Icon(Iconsax.moon, size: 16),
+          ),
         ],
         selected: {currentTheme},
-        onSelectionChanged: (set) => ref.read(themeModeProvider.notifier).setThemeMode(set.first),
+        onSelectionChanged: (set) =>
+            ref.read(themeModeProvider.notifier).setThemeMode(set.first),
         style: SegmentedButton.styleFrom(
           backgroundColor: Colors.transparent,
           selectedBackgroundColor: AppColors.primary,
@@ -572,7 +736,13 @@ class _ProfileTile extends StatelessWidget {
   final bool isDark;
   final VoidCallback onTap;
 
-  const _ProfileTile({required this.icon, required this.label, required this.color, required this.isDark, required this.onTap});
+  const _ProfileTile({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.isDark,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -581,7 +751,9 @@ class _ProfileTile extends StatelessWidget {
       tileColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+        side: BorderSide(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+        ),
       ),
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -599,4 +771,3 @@ class _ProfileTile extends StatelessWidget {
     );
   }
 }
-

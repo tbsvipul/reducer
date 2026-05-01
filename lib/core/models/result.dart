@@ -1,5 +1,5 @@
 /// A generic class that holds a value with its loading status.
-/// 
+///
 /// Used for handling [AuthService] and other async operations with meaningful errors.
 sealed class Result<T> {
   const Result();
@@ -18,4 +18,3 @@ class Failure<T> extends Result<T> {
   final Object? error;
   const Failure(this.message, [this.error]);
 }
-

@@ -6,10 +6,7 @@ import 'package:reducer/l10n/app_localizations.dart';
 class CommonBottomNavBar extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
-  const CommonBottomNavBar({
-    super.key,
-    required this.navigationShell,
-  });
+  const CommonBottomNavBar({super.key, required this.navigationShell});
 
   void _onTap(int index) {
     navigationShell.goBranch(
@@ -53,4 +50,3 @@ class CommonBottomNavBar extends StatelessWidget {
     );
   }
 }
-

@@ -27,9 +27,9 @@ class _CompressTabViewState extends State<CompressTabView> {
   void initState() {
     super.initState();
     final initialValue = widget.settings.targetFileSizeKB != null
-        ? (widget.settings.isTargetUnitMb 
-            ? widget.settings.targetFileSizeKB! / 1024 
-            : widget.settings.targetFileSizeKB!)
+        ? (widget.settings.isTargetUnitMb
+              ? widget.settings.targetFileSizeKB! / 1024
+              : widget.settings.targetFileSizeKB!)
         : '';
     _sizeController = TextEditingController(text: initialValue.toString());
   }
@@ -43,11 +43,13 @@ class _CompressTabViewState extends State<CompressTabView> {
   void _updateSettings({double? size, bool? isMb}) {
     final newIsMb = isMb ?? widget.settings.isTargetUnitMb;
     final rawSize = size ?? double.tryParse(_sizeController.text) ?? 0;
-    
-    widget.onSettingsChanged(widget.settings.copyWith(
-      targetFileSizeKB: newIsMb ? rawSize * 1024 : rawSize,
-      isTargetUnitMb: newIsMb,
-    ));
+
+    widget.onSettingsChanged(
+      widget.settings.copyWith(
+        targetFileSizeKB: newIsMb ? rawSize * 1024 : rawSize,
+        isTargetUnitMb: newIsMb,
+      ),
+    );
   }
 
   @override
@@ -68,17 +70,26 @@ class _CompressTabViewState extends State<CompressTabView> {
                 Expanded(
                   child: TextField(
                     controller: _sizeController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     style: AppTextStyles.titleMedium(context),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: isDark ? AppColors.darkSurfaceVariant : Colors.white,
+                      fillColor: isDark
+                          ? AppColors.darkSurfaceVariant
+                          : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.r),
-                        borderSide: isDark ? const BorderSide(color: Colors.white10) : const BorderSide(color: AppColors.lightBorder),
+                        borderSide: isDark
+                            ? const BorderSide(color: Colors.white10)
+                            : const BorderSide(color: AppColors.lightBorder),
                       ),
                       hintText: l10n.sizeHint,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
                     ),
                     onChanged: (value) => _updateSettings(),
                   ),
@@ -87,14 +98,28 @@ class _CompressTabViewState extends State<CompressTabView> {
                 Container(
                   padding: EdgeInsets.all(4.r),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+                    color: isDark
+                        ? AppColors.darkSurfaceVariant
+                        : AppColors.lightSurfaceVariant,
                     borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(color: isDark ? Colors.white10 : AppColors.lightBorder),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : AppColors.lightBorder,
+                    ),
                   ),
                   child: Row(
                     children: [
-                      _buildUnitButton('MB', widget.settings.isTargetUnitMb, isDark, () => _updateSettings(isMb: true)),
-                      _buildUnitButton('KB', !widget.settings.isTargetUnitMb, isDark, () => _updateSettings(isMb: false)),
+                      _buildUnitButton(
+                        'MB',
+                        widget.settings.isTargetUnitMb,
+                        isDark,
+                        () => _updateSettings(isMb: true),
+                      ),
+                      _buildUnitButton(
+                        'KB',
+                        !widget.settings.isTargetUnitMb,
+                        isDark,
+                        () => _updateSettings(isMb: false),
+                      ),
                     ],
                   ),
                 ),
@@ -110,9 +135,19 @@ class _CompressTabViewState extends State<CompressTabView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(l10n.smallerFile, style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant)),
+                    Text(
+                      l10n.smallerFile,
+                      style: AppTextStyles.labelSmall(context).copyWith(
+                        color: isDark
+                            ? AppColors.onDarkSurfaceVariant
+                            : AppColors.onLightSurfaceVariant,
+                      ),
+                    ),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 4.h,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12.r),
@@ -126,7 +161,14 @@ class _CompressTabViewState extends State<CompressTabView> {
                         ),
                       ),
                     ),
-                    Text(l10n.higherQuality, style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant)),
+                    Text(
+                      l10n.higherQuality,
+                      style: AppTextStyles.labelSmall(context).copyWith(
+                        color: isDark
+                            ? AppColors.onDarkSurfaceVariant
+                            : AppColors.onLightSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(height: 8.h),
@@ -135,8 +177,12 @@ class _CompressTabViewState extends State<CompressTabView> {
                   min: 1,
                   max: 100,
                   activeColor: AppColors.primary,
-                  inactiveColor: isDark ? Colors.white10 : AppColors.lightBorder,
-                  onChanged: (v) => widget.onSettingsChanged(widget.settings.copyWith(quality: v)),
+                  inactiveColor: isDark
+                      ? Colors.white10
+                      : AppColors.lightBorder,
+                  onChanged: (v) => widget.onSettingsChanged(
+                    widget.settings.copyWith(quality: v),
+                  ),
                 ),
               ],
             ),
@@ -146,7 +192,11 @@ class _CompressTabViewState extends State<CompressTabView> {
     );
   }
 
-  Widget _buildCard(BuildContext context, {required String title, required Widget child}) {
+  Widget _buildCard(
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,7 +206,9 @@ class _CompressTabViewState extends State<CompressTabView> {
           style: AppTextStyles.labelSmall(context).copyWith(
             letterSpacing: 1.2.w,
             fontWeight: FontWeight.w800,
-            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            color: isDark
+                ? AppColors.onDarkSurfaceVariant
+                : AppColors.onLightSurfaceVariant,
             fontSize: 11.sp,
           ),
         ),
@@ -166,7 +218,10 @@ class _CompressTabViewState extends State<CompressTabView> {
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(AppDimensions.radiusLg.r),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1.r),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              width: 1.r,
+            ),
           ),
           child: child,
         ),
@@ -174,22 +229,39 @@ class _CompressTabViewState extends State<CompressTabView> {
     );
   }
 
-  Widget _buildUnitButton(String label, bool isSelected, bool isDark, VoidCallback onTap) {
+  Widget _buildUnitButton(
+    String label,
+    bool isSelected,
+    bool isDark,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: isSelected ? (isDark ? Colors.white10 : Colors.white) : Colors.transparent,
+          color: isSelected
+              ? (isDark ? Colors.white10 : Colors.white)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
-          boxShadow: isSelected && !isDark ? [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4.r, offset: Offset(0, 2.h))
-          ] : null,
+          boxShadow: isSelected && !isDark
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4.r,
+                    offset: Offset(0, 2.h),
+                  ),
+                ]
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? AppColors.primary : (isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+            color: isSelected
+                ? AppColors.primary
+                : (isDark
+                      ? AppColors.onDarkSurfaceVariant
+                      : AppColors.onLightSurfaceVariant),
             fontWeight: FontWeight.bold,
             fontSize: 12.sp,
           ),
@@ -198,4 +270,3 @@ class _CompressTabViewState extends State<CompressTabView> {
     );
   }
 }
-

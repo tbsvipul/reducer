@@ -16,7 +16,6 @@ import 'package:path/path.dart' as p;
 import 'package:reducer/core/theme/app_colors.dart';
 import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
-import 'package:reducer/core/models/image_settings.dart';
 import 'package:reducer/core/ads/ad_manager.dart';
 import 'package:reducer/common/widgets/app_button.dart';
 import 'package:reducer/common/widgets/app_snackbar.dart';
@@ -68,7 +67,8 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
 
   Future<void> _pickMultipleImages() async {
     if (!mounted) return;
-    if (!await PermissionService.instance.ensurePhotosPermission(context)) return;
+    if (!await PermissionService.instance.ensurePhotosPermission(context))
+      return;
 
     final picker = ImagePicker();
     final pickedFiles = await picker.pickMultiImage();
@@ -76,10 +76,14 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
     if (pickedFiles.isNotEmpty && mounted) {
       final isPro = ref.read(premiumControllerProvider).isPro;
       final selected = isPro ? pickedFiles : pickedFiles.take(50).toList();
-      unawaited(ref.read(bulkImageControllerProvider.notifier).selectImages(selected));
+      unawaited(
+        ref.read(bulkImageControllerProvider.notifier).selectImages(selected),
+      );
 
       if (!isPro && pickedFiles.length > 50) {
-        debugPrint('Limit Warning: ${AppLocalizations.of(context)!.freeUserLimit}');
+        debugPrint(
+          'Limit Warning: ${AppLocalizations.of(context)!.freeUserLimit}',
+        );
       }
     }
   }
@@ -91,23 +95,36 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
   Future<void> _handleProcess() async {
     final isPro = ref.read(premiumControllerProvider).isPro;
     final l10n = AppLocalizations.of(context)!;
-    await ref.read(bulkImageControllerProvider.notifier).processAll(isPro, l10n);
+    await ref
+        .read(bulkImageControllerProvider.notifier)
+        .processAll(isPro, l10n);
 
     final state = ref.read(bulkImageControllerProvider);
-    final successful = state.processedResults.values.where((f) => f != null).cast<File>().toList();
+    final successful = state.processedResults.values
+        .where((f) => f != null)
+        .cast<File>()
+        .toList();
     if (successful.isNotEmpty) {
       await _saveToHistory(successful, state);
     }
   }
 
   Future<void> _saveAllToGallery(BulkImageState state) async {
-    final successful = state.processedResults.values.where((f) => f != null).cast<File>().toList();
+    final successful = state.processedResults.values
+        .where((f) => f != null)
+        .cast<File>()
+        .toList();
     if (successful.isEmpty) return;
 
     try {
-      await Future.wait(successful.map((f) => Gal.putImage(f.path, album: 'Reducer')));
+      await Future.wait(
+        successful.map((f) => Gal.putImage(f.path, album: 'Reducer')),
+      );
       if (mounted) {
-        AppSnackbar.show(context, AppLocalizations.of(context)!.savedXImages(successful.length));
+        AppSnackbar.show(
+          context,
+          AppLocalizations.of(context)!.savedXImages(successful.length),
+        );
       }
     } catch (e) {
       if (mounted) debugPrint('Save Error: $e');
@@ -115,26 +132,43 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
   }
 
   Future<void> _exportAsZip(BulkImageState state) async {
-    final successful = state.processedResults.values.where((f) => f != null).cast<File>().toList();
+    final successful = state.processedResults.values
+        .where((f) => f != null)
+        .cast<File>()
+        .toList();
     if (successful.isEmpty) return;
 
     try {
-      final zipBytes = await compute(_buildZipIsolate, _ZipArgs(
-        filePaths: successful.map((f) => f.path).toList(),
-        extension: state.settings.format.extension,
-      ));
+      // Pre-read bytes on main thread to keep isolate pure
+      final filesData = await Future.wait(
+        successful.map((f) async {
+          return _FileData(
+            name: p.basename(f.path),
+            bytes: await f.readAsBytes(),
+          );
+        }),
+      );
+
+      final zipBytes = await compute(
+        _buildZipIsolate,
+        _ZipArgs(files: filesData),
+      );
 
       if (zipBytes == null) throw Exception('ZIP creation failed');
 
       final tempDir = await getTemporaryDirectory();
-      final zipFile = File('${tempDir.path}/bulk_${DateTime.now().millisecondsSinceEpoch}.zip');
+      final zipFile = File(
+        '${tempDir.path}/bulk_${DateTime.now().millisecondsSinceEpoch}.zip',
+      );
       await zipFile.writeAsBytes(zipBytes);
 
       if (!mounted) return;
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(zipFile.path)],
-        subject: AppLocalizations.of(context)!.processedImages,
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(zipFile.path)],
+          subject: AppLocalizations.of(context)!.processedImages,
+        ),
+      );
     } catch (e) {
       if (mounted) debugPrint('Zip Error: $e');
     }
@@ -156,14 +190,17 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       appBar: AppBar(
         title: Text(l10n.bulkStudio),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Iconsax.trash),
-            onPressed: () => ref.read(bulkImageControllerProvider.notifier).clear(),
+            onPressed: () =>
+                ref.read(bulkImageControllerProvider.notifier).clear(),
           ),
         ],
       ),
@@ -171,9 +208,11 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
         children: [
           const BannerAdWidget(),
           _buildTabBar(isDark, l10n),
-          if (state.totalCompressedSize > 0) _buildStatsBanner(isDark, l10n, state),
+          if (state.totalCompressedSize > 0)
+            _buildStatsBanner(isDark, l10n, state),
           _buildTabContent(state),
-          if (state.processedResults.isEmpty || state.isProcessing) _buildProcessFooter(isDark, l10n, state),
+          if (state.processedResults.isEmpty || state.isProcessing)
+            _buildProcessFooter(isDark, l10n, state),
         ],
       ),
     );
@@ -181,12 +220,17 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
 
   Widget _buildTabBar(bool isDark, AppLocalizations l10n) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w, vertical: AppDimensions.sm.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppDimensions.lg.w,
+        vertical: AppDimensions.sm.h,
+      ),
       child: Container(
         height: 52.h,
         padding: EdgeInsets.all(4.r),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+          color: isDark
+              ? AppColors.darkSurfaceVariant
+              : AppColors.lightSurfaceVariant,
           borderRadius: BorderRadius.circular(26.r),
         ),
         child: TabBar(
@@ -195,15 +239,21 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
             borderRadius: BorderRadius.circular(22.r),
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             border: Border.all(
-              color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
+              color: isDark
+                  ? Colors.white12
+                  : Colors.black.withValues(alpha: 0.05),
             ),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           labelColor: isDark ? Colors.white : AppColors.primary,
-          unselectedLabelColor: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+          unselectedLabelColor: isDark
+              ? AppColors.onDarkSurfaceVariant
+              : AppColors.onLightSurfaceVariant,
           dividerColor: Colors.transparent,
           labelPadding: EdgeInsets.zero,
-          labelStyle: AppTextStyles.labelMedium(context).copyWith(fontWeight: FontWeight.bold, fontSize: 12.sp),
+          labelStyle: AppTextStyles.labelMedium(
+            context,
+          ).copyWith(fontWeight: FontWeight.bold, fontSize: 12.sp),
           tabs: [
             Tab(text: l10n.compress),
             Tab(text: l10n.resize),
@@ -215,7 +265,11 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
     );
   }
 
-  Widget _buildStatsBanner(bool isDark, AppLocalizations l10n, BulkImageState state) {
+  Widget _buildStatsBanner(
+    bool isDark,
+    AppLocalizations l10n,
+    BulkImageState state,
+  ) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w),
       child: Container(
@@ -223,13 +277,19 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
         decoration: BoxDecoration(
           color: AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.r),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            width: 1.r,
+          ),
         ),
         child: Row(
           children: [
             Container(
               padding: EdgeInsets.all(8.r),
-              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
               child: Icon(Iconsax.chart_21, size: 16.r, color: Colors.white),
             ),
             SizedBox(width: 12.w),
@@ -253,19 +313,34 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
                         FileUtils.formatBytes(state.totalOriginalSize),
                         style: TextStyle(
                           decoration: TextDecoration.lineThrough,
-                          color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                          color: isDark
+                              ? AppColors.onDarkSurfaceVariant
+                              : AppColors.onLightSurfaceVariant,
                           fontSize: 13.sp,
                         ),
                       ),
-                      Icon(Icons.arrow_right_alt, size: 16.r, color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+                      Icon(
+                        Icons.arrow_right_alt,
+                        size: 16.r,
+                        color: isDark
+                            ? AppColors.onDarkSurfaceVariant
+                            : AppColors.onLightSurfaceVariant,
+                      ),
                       Text(
                         FileUtils.formatBytes(state.totalCompressedSize),
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.sp,
+                        ),
                       ),
                       const Spacer(),
                       Text(
                         '${((1 - (state.totalCompressedSize / state.totalOriginalSize)) * 100).toStringAsFixed(1)}% ${l10n.smaller}',
-                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 14.sp),
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     ],
                   ),
@@ -285,28 +360,42 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
         children: [
           BulkCompressTabView(
             settings: state.settings,
-            onSettingsChanged: (s) => ref.read(bulkImageControllerProvider.notifier).updateSettings(s),
+            onSettingsChanged: (s) => ref
+                .read(bulkImageControllerProvider.notifier)
+                .updateSettings(s),
           ),
           BulkResizeTabView(
             settings: state.settings,
-            onSettingsChanged: (s) => ref.read(bulkImageControllerProvider.notifier).updateSettings(s),
+            onSettingsChanged: (s) => ref
+                .read(bulkImageControllerProvider.notifier)
+                .updateSettings(s),
           ),
           BulkFormatTabView(
             settings: state.settings,
-            onSettingsChanged: (s) => ref.read(bulkImageControllerProvider.notifier).updateSettings(s),
+            onSettingsChanged: (s) => ref
+                .read(bulkImageControllerProvider.notifier)
+                .updateSettings(s),
           ),
           BulkExportTabView(
             state: state,
             onProcess: _handleProcess,
-            onSaveAll: () => AdManager().showInterstitialAd(onComplete: () => _saveAllToGallery(state)),
-            onExportZip: () => AdManager().showInterstitialAd(onComplete: () => _exportAsZip(state)),
+            onSaveAll: () => AdManager().showInterstitialAd(
+              onComplete: () => _saveAllToGallery(state),
+            ),
+            onExportZip: () => AdManager().showInterstitialAd(
+              onComplete: () => _exportAsZip(state),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProcessFooter(bool isDark, AppLocalizations l10n, BulkImageState state) {
+  Widget _buildProcessFooter(
+    bool isDark,
+    AppLocalizations l10n,
+    BulkImageState state,
+  ) {
     return Container(
       padding: EdgeInsets.all(AppDimensions.lg.r),
       decoration: BoxDecoration(
@@ -350,7 +439,9 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
                 subtitle: l10n.batchDescription,
                 icon: Iconsax.grid_5,
                 actionLabel: l10n.selectMultipleImages,
-                onAction: () => AdManager().showInterstitialAd(onComplete: _pickMultipleImages),
+                onAction: () => AdManager().showInterstitialAd(
+                  onComplete: _pickMultipleImages,
+                ),
               ),
               SizedBox(height: 30.h),
               const NativeAdWidget(size: NativeAdSize.medium),
@@ -381,7 +472,9 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
         await file.copy(p.join(appDir.path, relPath));
       }
 
-      final thumbBytes = await ThumbnailGenerator.generateSmallThumbnail(XFile(results.first.path));
+      final thumbBytes = await ThumbnailGenerator.generateSmallThumbnail(
+        XFile(results.first.path),
+      );
       if (thumbBytes == null) return;
 
       final thumbRelPath = 'history/thumb_bulk_$sessionId.jpg';
@@ -402,12 +495,16 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
 
       await ref.read(historyControllerProvider.notifier).addItem(historyItem);
 
-      unawaited(ref.read(analyticsServiceProvider).logCompressionSuccess(
-            type: 'bulk',
-            originalSize: state.totalOriginalSize,
-            compressedSize: state.totalCompressedSize,
-            imageCount: results.length,
-          ));
+      unawaited(
+        ref
+            .read(analyticsServiceProvider)
+            .logCompressionSuccess(
+              type: 'bulk',
+              originalSize: state.totalOriginalSize,
+              compressedSize: state.totalCompressedSize,
+              imageCount: results.length,
+            ),
+      );
       unawaited(ref.read(reviewControllerProvider).recordSuccessfulSave());
     } catch (e) {
       debugPrint('Error saving bulk history: $e');
@@ -416,21 +513,24 @@ class _BulkImageScreenState extends ConsumerState<BulkImageScreen>
 }
 
 class _ZipArgs {
-  final List<String> filePaths;
-  final String extension;
-  const _ZipArgs({required this.filePaths, required this.extension});
+  final List<_FileData> files;
+  const _ZipArgs({required this.files});
 }
 
-Future<List<int>?> _buildZipIsolate(_ZipArgs args) async {
+class _FileData {
+  final String name;
+  final Uint8List bytes;
+  const _FileData({required this.name, required this.bytes});
+}
+
+List<int>? _buildZipIsolate(_ZipArgs args) {
   try {
     final archive = Archive();
-    for (int i = 0; i < args.filePaths.length; i++) {
-      final bytes = await File(args.filePaths[i]).readAsBytes();
-      archive.addFile(ArchiveFile('image_${i + 1}.${args.extension}', bytes.length, bytes));
+    for (final file in args.files) {
+      archive.addFile(ArchiveFile(file.name, file.bytes.length, file.bytes));
     }
     return ZipEncoder().encode(archive);
   } catch (_) {
     return null;
   }
 }
-

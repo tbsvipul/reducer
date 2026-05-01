@@ -1,9 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:reducer/core/ads/ad_manager.dart';
 import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BannerAdWidget extends ConsumerStatefulWidget {
   const BannerAdWidget({super.key});
@@ -13,68 +14,131 @@ class BannerAdWidget extends ConsumerStatefulWidget {
 }
 
 class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
-  BannerAd? _claimedAd;
-
-  @override
-  void initState() {
-    super.initState();
-    _tryClaimAd();
-  }
+  BannerAd? _bannerAd;
+  bool _isLoaded = false;
+  bool _isLoading = false;
+  AdSize? _adSize;
+  int? _currentWidth;
 
   @override
   void dispose() {
-    _retryTimer?.cancel();
-    if (_claimedAd != null) {
-      AdManager().releaseAd(_claimedAd!);
-    }
+    _bannerAd?.dispose();
     super.dispose();
   }
 
-  int _retryCount = 0;
-  static const int _maxRetries = 15;
-  Timer? _retryTimer;
-
-  void _tryClaimAd() {
-    if (!mounted) return;
-    
-    final ad = AdManager().getCachedBanner();
-    if (ad != null && AdManager().isAdAvailable(ad)) {
-      AdManager().claimAd(ad);
-      if (mounted) {
-        setState(() {
-          _claimedAd = ad;
-        });
-      }
-    } else if (_retryCount < _maxRetries) {
-      _retryCount++;
-      // Exponential backoff: 200ms, 400ms, 800ms... up to several seconds
-      final delay = Duration(milliseconds: 200 * _retryCount);
-      _retryTimer?.cancel();
-      _retryTimer = Timer(delay, () {
-        if (mounted && _claimedAd == null) _tryClaimAd();
-      });
-    } else {
-      debugPrint('[BannerAdWidget] Max retries reached for ad claim.');
+  Future<void> _loadAdForWidth(int width) async {
+    if (_isLoading || width <= 0 || AdManager.isPremium) {
+      return;
     }
+
+    _isLoading = true;
+    _currentWidth = width;
+
+    final previousAd = _bannerAd;
+    _bannerAd = null;
+    _adSize = null;
+    if (mounted) {
+      setState(() => _isLoaded = false);
+    }
+    if (previousAd != null) {
+      unawaited(previousAd.dispose());
+    }
+
+    final size = await AdSize.getLargeAnchoredAdaptiveBannerAdSize(width);
+
+    if (!mounted || _currentWidth != width) {
+      _isLoading = false;
+      return;
+    }
+
+    if (size == null) {
+      debugPrint('[BannerAdWidget] Unable to get adaptive size');
+      _isLoading = false;
+      return;
+    }
+
+    _adSize = size;
+
+    final bannerAd = BannerAd(
+      adUnitId: AdManager.bannerAdUnitId,
+      size: size,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (!mounted) {
+            ad.dispose();
+            return;
+          }
+
+          setState(() {
+            _bannerAd = ad as BannerAd;
+            _isLoaded = true;
+          });
+          _isLoading = false;
+        },
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('[BannerAdWidget] Ad failed to load: $error');
+          ad.dispose();
+          if (mounted) {
+            setState(() {
+              _bannerAd = null;
+              _isLoaded = false;
+            });
+          }
+          _isLoading = false;
+        },
+      ),
+    );
+
+    await bannerAd.load();
+  }
+
+  void _scheduleLoad(double width) {
+    final normalizedWidth = width.truncate();
+    if (_currentWidth == normalizedWidth || _isLoading) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _currentWidth == normalizedWidth) {
+        return;
+      }
+      unawaited(_loadAdForWidth(normalizedWidth));
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final isPro = ref.watch(premiumControllerProvider.select((state) => state.isPro));
+    final isPro = ref.watch(
+      premiumControllerProvider.select((state) => state.isPro),
+    );
     if (isPro || AdManager.isPremium) {
       return const SizedBox.shrink();
     }
 
-    if (_claimedAd == null) {
-      return const SizedBox.shrink();
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        _scheduleLoad(width);
 
-    return Container(
-      alignment: Alignment.center,
-      width: double.infinity,
-      height: _claimedAd!.size.height.toDouble(),
-      child: AdWidget(ad: _claimedAd!),
+        if (!_isLoaded || _bannerAd == null || _adSize == null) {
+          return const SizedBox.shrink();
+        }
+
+        return SizedBox(
+          width: double.infinity,
+          height: _adSize!.height.toDouble(),
+          child: Center(
+            child: SizedBox(
+              width: _adSize!.width.toDouble(),
+              height: _adSize!.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            ),
+          ),
+        );
+      },
     );
   }
 }
-

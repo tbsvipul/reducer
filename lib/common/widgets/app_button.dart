@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:reducer/core/theme/app_brand_theme.dart';
 import 'package:reducer/core/theme/app_colors.dart';
 import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/core/theme/app_text_styles.dart';
@@ -16,6 +17,8 @@ class AppButton extends StatelessWidget {
   final double? width;
   final double? height;
   final bool isFullWidth;
+  final String? semanticLabel;
+  final String? tooltip;
 
   const AppButton({
     super.key,
@@ -28,11 +31,16 @@ class AppButton extends StatelessWidget {
     this.width,
     this.height,
     this.isFullWidth = false,
+    this.semanticLabel,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
-    final effectiveHeight = height ?? 48.h;
+    final effectiveHeight = ((height ?? 52).clamp(
+      48,
+      double.infinity,
+    )).toDouble();
 
     final Widget content = Row(
       mainAxisSize: MainAxisSize.min,
@@ -72,66 +80,94 @@ class AppButton extends StatelessWidget {
       ],
     );
 
-    return SizedBox(
-      width: isFullWidth ? double.infinity : (width?.w),
-      height: effectiveHeight,
-      child: _buildButtonDecoration(context, content),
+    Widget button = ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: isFullWidth ? double.infinity : 48,
+        minHeight: effectiveHeight,
+      ),
+      child: SizedBox(
+        width: isFullWidth ? double.infinity : width,
+        child: _buildButtonDecoration(context, content, effectiveHeight),
+      ),
     );
+
+    button = Semantics(
+      button: true,
+      enabled: onPressed != null && !isLoading,
+      label: semanticLabel ?? label,
+      child: button,
+    );
+
+    if (tooltip != null && tooltip!.isNotEmpty) {
+      button = Tooltip(message: tooltip!, child: button);
+    }
+
+    return button;
   }
 
-  Widget _buildButtonDecoration(BuildContext context, Widget child) {
+  Widget _buildButtonDecoration(
+    BuildContext context,
+    Widget child,
+    double effectiveHeight,
+  ) {
     final decoration = _getBoxDecoration(context);
-    
-    return Container(
+    final borderRadius = BorderRadius.circular(AppDimensions.radiusFull.r);
+
+    final Widget button = Container(
+      constraints: BoxConstraints(minHeight: effectiveHeight),
       decoration: decoration,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: isLoading ? null : onPressed,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusFull.r),
+          borderRadius: borderRadius,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppDimensions.lg.w,
+              vertical: AppDimensions.md.h,
+            ),
             child: Center(child: child),
           ),
         ),
       ),
+    );
+
+    return FocusableActionDetector(
+      enabled: onPressed != null && !isLoading,
+      child: button,
     );
   }
 
   BoxDecoration? _getBoxDecoration(BuildContext context) {
     final borderRadius = BorderRadius.circular(AppDimensions.radiusFull.r);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final brandTheme = context.brandTheme;
 
     switch (style) {
       case AppButtonStyle.premium:
         return BoxDecoration(
-          gradient: const LinearGradient(
-            colors: AppColors.premiumGradient,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: brandTheme.premiumGradient,
           borderRadius: borderRadius,
-          boxShadow: AppColors.premiumButtonShadow,
+          boxShadow: brandTheme.premiumButtonShadow,
         );
       case AppButtonStyle.primary:
         return BoxDecoration(
-          gradient: const LinearGradient(
-            colors: AppColors.primaryGradient,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: brandTheme.primaryGradient,
           borderRadius: borderRadius,
-          boxShadow: AppColors.buttonShadow,
+          boxShadow: brandTheme.buttonShadow,
         );
       case AppButtonStyle.secondary:
         return BoxDecoration(
-          color: isDark ? AppColors.darkSurface : AppColors.secondary,
+          color: isDark
+              ? theme.colorScheme.surfaceContainerHighest
+              : AppColors.secondaryContainer,
           borderRadius: borderRadius,
         );
       case AppButtonStyle.outline:
         return BoxDecoration(
           borderRadius: borderRadius,
-          border: Border.all(color: AppColors.primary, width: 1.5.r),
+          border: Border.all(color: theme.colorScheme.outline, width: 1.5.r),
         );
       case AppButtonStyle.ghost:
         return null;
@@ -143,12 +179,13 @@ class AppButton extends StatelessWidget {
     switch (style) {
       case AppButtonStyle.outline:
       case AppButtonStyle.ghost:
-        return AppColors.primary;
+        return Theme.of(context).colorScheme.primary;
       case AppButtonStyle.secondary:
-        return isDark ? AppColors.onDarkSurface : AppColors.onLightSurface;
+        return isDark
+            ? Theme.of(context).colorScheme.onSurface
+            : AppColors.secondaryDark;
       default:
-        return AppColors.onPrimary;
+        return Theme.of(context).colorScheme.onPrimary;
     }
   }
 }
-

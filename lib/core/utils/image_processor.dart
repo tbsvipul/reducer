@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart' as img;
@@ -119,7 +118,10 @@ class ImageProcessor {
       // ── HYBRID PREPARATION PIPELINE ──────────────────────────────────────────
       // Optimized Path: Use Native (FlutterImageCompress) for Resize/Rotate
       // Fallback Path: Only use pure-Dart 'image' library for complex ops (Flipping/BMP)
-      final needsComplexOps = settings.flipHorizontal || settings.flipVertical || settings.format == ImageFormat.bmp;
+      final needsComplexOps =
+          settings.flipHorizontal ||
+          settings.flipVertical ||
+          settings.format == ImageFormat.bmp;
 
       if (!needsComplexOps) {
         intermediateBytes = await FlutterImageCompress.compressWithList(
@@ -132,10 +134,10 @@ class ImageProcessor {
         );
       } else {
         // Use optimized isolate for complex operations
-        final target = await compute(_calculateAndPrepareIsolate, _PrepareParams(
-          bytes: bytes,
-          settings: settings,
-        ));
+        final target = await compute(
+          _calculateAndPrepareIsolate,
+          _PrepareParams(bytes: bytes, settings: settings),
+        );
         if (target == null) return null;
         intermediateBytes = target.preparedBytes;
       }
@@ -146,7 +148,7 @@ class ImageProcessor {
       }
 
       final compressFormat = _toCompressFormat(settings.format);
-      
+
       // Smart iterative compression for target file size
       if (settings.targetFileSizeKB != null && settings.targetFileSizeKB! > 0) {
         return await _iterativeCompress(
@@ -198,7 +200,7 @@ class ImageProcessor {
       for (int i = 0; i < 12; i++) {
         if (low > high) break;
         final int mid = (low + high) ~/ 2;
-        
+
         final result = await FlutterImageCompress.compressWithList(
           bytes,
           minWidth: currentWidth,
@@ -225,8 +227,10 @@ class ImageProcessor {
       }
 
       // ── ACCURACY CHECK & DYNAMIC SCALING ─────────────────────────────────────
-      final finalStageSize = stageBestSize > 0 ? stageBestSize : (bestResult?.length ?? 0);
-      
+      final finalStageSize = stageBestSize > 0
+          ? stageBestSize
+          : (bestResult?.length ?? 0);
+
       // HIGH ACCURACY: Stop if we are within 0.5% or 1KB of the target
       final diffBytes = (finalStageSize - targetBytes).abs();
       if (diffBytes < (targetBytes * 0.005) || diffBytes < 1024) {
@@ -235,47 +239,63 @@ class ImageProcessor {
 
       // If we are too SMALL even at quality 100, we INCREASE resolution
       // Limit upscaling to 2x to prevent OOM on low-end devices
-      if (finalStageSize < targetBytes * 0.98 && currentWidth < initialWidth * 2) {
+      if (finalStageSize < targetBytes * 0.98 &&
+          currentWidth < initialWidth * 2) {
         // Safety guard: Don't upscale if projected raw buffer exceeds 100MB
         final projectedBufferBytes = currentWidth * currentHeight * 4 * 1.5;
         if (projectedBufferBytes > 100 * 1024 * 1024) {
-          debugPrint('Upscale aborted: Potential memory risk (${(projectedBufferBytes / 1024 / 1024).toStringAsFixed(1)}MB)');
+          debugPrint(
+            'Upscale aborted: Potential memory risk (${(projectedBufferBytes / 1024 / 1024).toStringAsFixed(1)}MB)',
+          );
           break;
         }
 
-        final scaleFactor = math.sqrt(targetBytes / finalStageSize).clamp(1.05, 1.5);
+        final scaleFactor = math
+            .sqrt(targetBytes / finalStageSize)
+            .clamp(1.05, 1.5);
         currentWidth = (currentWidth * scaleFactor).round();
         currentHeight = (currentHeight * scaleFactor).round();
-        debugPrint('Target size not met. Upscaling resolution to ${currentWidth}x$currentHeight');
+        debugPrint(
+          'Target size not met. Upscaling resolution to ${currentWidth}x$currentHeight',
+        );
         continue;
       }
 
       // If we are too LARGE even at quality 5, we DECREASE resolution
       if (finalStageSize > targetBytes * 1.02) {
-        final scaleFactor = math.sqrt(targetBytes / finalStageSize).clamp(0.5, 0.95);
+        final scaleFactor = math
+            .sqrt(targetBytes / finalStageSize)
+            .clamp(0.5, 0.95);
         currentWidth = (currentWidth * scaleFactor).round();
         currentHeight = (currentHeight * scaleFactor).round();
-        debugPrint('Target size exceeded. Downscaling resolution to ${currentWidth}x$currentHeight');
+        debugPrint(
+          'Target size exceeded. Downscaling resolution to ${currentWidth}x$currentHeight',
+        );
         continue;
       }
 
       break; // No more adjustments possible
     }
-    
+
     return bestResult;
   }
 
   static CompressFormat _toCompressFormat(ImageFormat format) {
     switch (format) {
-      case ImageFormat.png: return CompressFormat.png;
-      case ImageFormat.webp: return CompressFormat.webp;
-      default: return CompressFormat.jpeg;
+      case ImageFormat.png:
+        return CompressFormat.png;
+      case ImageFormat.webp:
+        return CompressFormat.webp;
+      default:
+        return CompressFormat.jpeg;
     }
   }
 
   /// ── PERFORMANCE: DISK CLEANUP ───────────────────────────────────────────
   /// Automatically purges processed temporary files older than the specified duration.
-  static Future<void> cleanupTempFiles({Duration olderThan = const Duration(hours: 24)}) async {
+  static Future<void> cleanupTempFiles({
+    Duration olderThan = const Duration(hours: 24),
+  }) async {
     try {
       final tempDir = await getTemporaryDirectory();
       final cutoff = DateTime.now().subtract(olderThan);
@@ -290,7 +310,8 @@ class ImageProcessor {
           }
         }
       }
-      if (count > 0) debugPrint('[ImageProcessor] Cleaned up $count stale temp files.');
+      if (count > 0)
+        debugPrint('[ImageProcessor] Cleaned up $count stale temp files.');
     } catch (e) {
       debugPrint('[ImageProcessor] Cleanup failed: $e');
     }
@@ -335,7 +356,11 @@ _PreparedResult? _calculateAndPrepareIsolate(_PrepareParams params) {
 
   // Apply transformations
   if (image.width != targetDim.width || image.height != targetDim.height) {
-    image = img.copyResize(image, width: targetDim.width, height: targetDim.height);
+    image = img.copyResize(
+      image,
+      width: targetDim.width,
+      height: targetDim.height,
+    );
   }
 
   if (params.settings.rotation % 360 != 0) {
@@ -345,7 +370,7 @@ _PreparedResult? _calculateAndPrepareIsolate(_PrepareParams params) {
   if (params.settings.flipHorizontal) image = img.flipHorizontal(image);
   if (params.settings.flipVertical) image = img.flipVertical(image);
 
-  // Using 100% quality JPG as an intermediary is significantly faster than PNG 
+  // Using 100% quality JPG as an intermediary is significantly faster than PNG
   // in the pure-Dart image library.
   final preparedBytes = Uint8List.fromList(img.encodeJpg(image, quality: 100));
   return _PreparedResult(preparedBytes, image.width, image.height);
@@ -355,4 +380,3 @@ Uint8List _encodeBmpInIsolate(Uint8List bytes) {
   final image = img.decodeImage(bytes);
   return image != null ? Uint8List.fromList(img.encodeBmp(image)) : bytes;
 }
-

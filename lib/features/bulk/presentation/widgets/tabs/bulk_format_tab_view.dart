@@ -37,10 +37,30 @@ class BulkFormatTabView extends StatelessWidget {
               crossAxisSpacing: AppDimensions.md.w,
               childAspectRatio: 2.2,
               children: [
-                _buildFormatOption(context, ImageFormat.jpeg, 'JPEG', l10n.bestForPhotos),
-                _buildFormatOption(context, ImageFormat.png, 'PNG', l10n.bestForGraphics),
-                _buildFormatOption(context, ImageFormat.webp, 'WebP', l10n.modernAndSmall),
-                _buildFormatOption(context, ImageFormat.bmp, 'BMP', l10n.uncompressed),
+                _buildFormatOption(
+                  context,
+                  ImageFormat.jpeg,
+                  'JPEG',
+                  l10n.bestForPhotos,
+                ),
+                _buildFormatOption(
+                  context,
+                  ImageFormat.png,
+                  'PNG',
+                  l10n.bestForGraphics,
+                ),
+                _buildFormatOption(
+                  context,
+                  ImageFormat.webp,
+                  'WebP',
+                  l10n.modernAndSmall,
+                ),
+                _buildFormatOption(
+                  context,
+                  ImageFormat.bmp,
+                  'BMP',
+                  l10n.uncompressed,
+                ),
               ],
             ),
           ),
@@ -50,21 +70,30 @@ class BulkFormatTabView extends StatelessWidget {
   }
 
   Widget _buildInfoNote(BuildContext context, String text) {
-     return Container(
+    return Container(
       padding: EdgeInsets.all(AppDimensions.md.r),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.r),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.2),
+          width: 1.r,
+        ),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: AppDimensions.iconSm.r, color: AppColors.primary),
+          Icon(
+            Icons.info_outline,
+            size: AppDimensions.iconSm.r,
+            color: AppColors.primary,
+          ),
           SizedBox(width: AppDimensions.sm.w),
           Expanded(
             child: Text(
               text,
-              style: AppTextStyles.labelSmall(context).copyWith(color: AppColors.primary, fontSize: 11.sp),
+              style: AppTextStyles.labelSmall(
+                context,
+              ).copyWith(color: AppColors.primary, fontSize: 11.sp),
             ),
           ),
         ],
@@ -72,7 +101,12 @@ class BulkFormatTabView extends StatelessWidget {
     );
   }
 
-  Widget _buildFormatOption(BuildContext context, ImageFormat format, String title, String subtitle) {
+  Widget _buildFormatOption(
+    BuildContext context,
+    ImageFormat format,
+    String title,
+    String subtitle,
+  ) {
     final isSelected = settings.format == format;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -81,16 +115,21 @@ class BulkFormatTabView extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? AppColors.primary.withValues(alpha: 0.1) 
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.1)
               : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
           border: Border.all(
-            color: isSelected ? AppColors.primary : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
             width: 2.r,
           ),
         ),
-        padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w, vertical: AppDimensions.sm.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppDimensions.lg.w,
+          vertical: AppDimensions.sm.h,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +138,11 @@ class BulkFormatTabView extends StatelessWidget {
               title,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: isSelected ? AppColors.primary : (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark
+                          ? AppColors.onDarkSurface
+                          : AppColors.onLightSurface),
                 fontSize: 14.sp,
               ),
             ),
@@ -107,7 +150,11 @@ class BulkFormatTabView extends StatelessWidget {
               subtitle,
               style: TextStyle(
                 fontSize: 10.sp,
-                color: isSelected ? AppColors.primary.withValues(alpha: 0.7) : (isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+                color: isSelected
+                    ? AppColors.primary.withValues(alpha: 0.7)
+                    : (isDark
+                          ? AppColors.onDarkSurfaceVariant
+                          : AppColors.onLightSurfaceVariant),
               ),
             ),
           ],
@@ -116,7 +163,11 @@ class BulkFormatTabView extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(BuildContext context, {required String title, required Widget child}) {
+  Widget _buildCard(
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +187,10 @@ class BulkFormatTabView extends StatelessWidget {
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(AppDimensions.radiusLg.r),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1.r),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              width: 1.r,
+            ),
           ),
           child: child,
         ),
@@ -144,4 +198,3 @@ class BulkFormatTabView extends StatelessWidget {
     );
   }
 }
-

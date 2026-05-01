@@ -21,7 +21,9 @@ class LoginRequiredDialog extends StatelessWidget {
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
           borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-          boxShadow: isDark ? AppColors.cardShadowDark : AppColors.cardShadowLight,
+          boxShadow: isDark
+              ? AppColors.cardShadowDark
+              : AppColors.cardShadowLight,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -40,7 +42,7 @@ class LoginRequiredDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            
+
             // Title
             Text(
               AppLocalizations.of(context)!.signInRequired,
@@ -50,17 +52,19 @@ class LoginRequiredDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            
+
             // Description
             Text(
               AppLocalizations.of(context)!.signInRequiredDescription,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium(context).copyWith(
-                color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                color: isDark
+                    ? AppColors.onDarkSurfaceVariant
+                    : AppColors.onLightSurfaceVariant,
               ),
             ),
             const SizedBox(height: AppSpacing.xl2),
-            
+
             // Primary Action: Login
             SizedBox(
               width: double.infinity,
@@ -77,7 +81,7 @@ class LoginRequiredDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            
+
             // Secondary Action: Register
             SizedBox(
               width: double.infinity,
@@ -88,19 +92,23 @@ class LoginRequiredDialog extends StatelessWidget {
                 },
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
+                  side: BorderSide(
+                    color: AppColors.primary.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Text(AppLocalizations.of(context)!.createAccount),
               ),
             ),
-            
+
             // Tertiary Action: Close
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
                 AppLocalizations.of(context)!.maybeLater,
                 style: TextStyle(
-                  color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                  color: isDark
+                      ? AppColors.onDarkSurfaceVariant
+                      : AppColors.onLightSurfaceVariant,
                 ),
               ),
             ),
@@ -110,4 +118,3 @@ class LoginRequiredDialog extends StatelessWidget {
     );
   }
 }
-

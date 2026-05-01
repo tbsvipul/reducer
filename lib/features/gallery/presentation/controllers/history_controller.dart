@@ -15,15 +15,9 @@ class HistoryState {
   final List<HistoryItem> items;
   final bool isLoading;
 
-  const HistoryState({
-    this.items = const [],
-    this.isLoading = false,
-  });
+  const HistoryState({this.items = const [], this.isLoading = false});
 
-  HistoryState copyWith({
-    List<HistoryItem>? items,
-    bool? isLoading,
-  }) {
+  HistoryState copyWith({List<HistoryItem>? items, bool? isLoading}) {
     return HistoryState(
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
@@ -52,7 +46,7 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
 
     // Load items for this specific user
     final items = await _loadItemsFromStorage(uid);
-    
+
     // If user just logged in (not guest), trigger cloud sync
     if (user != null && !user.isAnonymous) {
       _syncToCloud(items);
@@ -84,7 +78,7 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
   /// Automatically triggers a sync with Firestore if authenticated.
   Future<void> addItem(HistoryItem item) async {
     final current = await future;
-    
+
     final updatedItems = [item, ...current.items]
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
@@ -103,7 +97,7 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
   /// Removes a history entry by its unique [id].
   Future<void> removeItem(String id) async {
     final current = await future;
-    
+
     final updatedItems = current.items
         .where((item) => item.id != id)
         .toList(growable: false);
@@ -123,10 +117,8 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
   /// Clears all history entries for the current user session.
   Future<void> clearAll() async {
     await future;
-    
-    state = const AsyncValue.data(
-      HistoryState(items: [], isLoading: false),
-    );
+
+    state = const AsyncValue.data(HistoryState(items: [], isLoading: false));
 
     final user = ref.read(authStateChangesProvider).value;
     final uid = user?.uid ?? 'guest';
@@ -141,7 +133,7 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
 
       // 1. Initial migration from global to user-specific if needed
       if (!prefs.containsKey(userKey) && uid != 'guest') {
-         await _migrateToUserSpecific(uid);
+        await _migrateToUserSpecific(uid);
       }
 
       // 2. Migration from insecure/secure storage if necessary
@@ -149,11 +141,11 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
 
       // 3. Read from shared preferences using user-specific key
       final historyJsonRaw = prefs.getString(userKey);
-      
+
       if (historyJsonRaw == null || historyJsonRaw.isEmpty) {
         return const [];
       }
-      
+
       // PERF: Offload entire JSON string decoding and object mapping to isolate
       return compute(_decodeHistoryFromRaw, historyJsonRaw);
     } catch (e) {
@@ -167,10 +159,7 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
       // PERF: Offload entire object graph serialization and JSON encoding to isolate
       final historyJsonRaw = await compute(_encodeHistoryToRaw, items);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        '${_sharedPrefsKey}_$uid',
-        historyJsonRaw,
-      );
+      await prefs.setString('${_sharedPrefsKey}_$uid', historyJsonRaw);
     } catch (e) {
       debugPrint('[Storage] Failed to save history: $e');
     }
@@ -182,10 +171,10 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
       final globalData = prefs.getString(_sharedPrefsKey);
       if (globalData != null) {
         await prefs.setString('${_sharedPrefsKey}_$uid', globalData);
-        // We keep the global data for now to allow migration for other users 
+        // We keep the global data for now to allow migration for other users
         // if they were sharing the same session, though unlikely.
         // Or just remove it if we assume it's the primary user.
-        await prefs.remove(_sharedPrefsKey); 
+        await prefs.remove(_sharedPrefsKey);
       }
     }
   }
@@ -193,7 +182,7 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
   Future<void> _migrateToSharedPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // If we already have the new key, no migration needed
       if (prefs.containsKey(_sharedPrefsKey)) return;
 
@@ -225,7 +214,7 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
       // 4. Cleanup old storage
       await _secureStorage.delete(key: _secureStorageKey);
       await prefs.remove(_legacyKey);
-      
+
       debugPrint('[Storage] History migration complete.');
     } catch (e) {
       debugPrint('[Storage] Migration failed: $e');
@@ -234,7 +223,9 @@ class HistoryController extends AutoDisposeAsyncNotifier<HistoryState> {
 }
 
 String _encodeHistoryToRaw(List<HistoryItem> items) {
-  final list = items.map((item) => jsonEncode(item.toJson())).toList(growable: false);
+  final list = items
+      .map((item) => jsonEncode(item.toJson()))
+      .toList(growable: false);
   return jsonEncode(list);
 }
 
@@ -258,4 +249,3 @@ List<HistoryItem> _decodeHistoryFromRaw(String rawJson) {
   }
   return items;
 }
-

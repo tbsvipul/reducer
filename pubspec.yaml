@@ -45,6 +45,7 @@ dependencies:
   connectivity_plus: ^6.1.3
   uuid: ^4.5.1
   flutter_local_notifications: ^17.2.2
+  flutter_native_splash: ^2.4.7
   crypto: ^3.0.6
   package_info_plus: ^8.2.3
   in_app_review: ^2.0.11
@@ -55,25 +56,24 @@ dependencies:
 
 
   # Monetization
-  google_mobile_ads: ^7.0.0
+  google_mobile_ads: ^8.0.0
   in_app_purchase: ^3.2.3
   in_app_purchase_android: ^0.4.0+10
 
   
   # Firebase
-  firebase_core: ^3.0.0
-  firebase_auth: ^5.1.0
+  firebase_core: ^4.7.0
+  firebase_auth: ^6.1.0
   google_sign_in: ^6.2.1
-  cloud_firestore: ^5.1.0
-  cloud_functions: ^5.1.0
-  firebase_storage: ^12.4.10
-  firebase_crashlytics: ^4.0.0
-  firebase_analytics: ^11.0.0
-  firebase_remote_config: ^5.0.0
+  cloud_firestore: ^6.1.0
+  cloud_functions: ^6.1.0
+  firebase_storage: ^13.1.0
+  firebase_crashlytics: ^5.1.0
+  firebase_analytics: ^12.1.0
+  firebase_remote_config: ^6.4.0
   
   flutter_screenutil: ^5.9.3
   http: ^1.6.0
-  flutter_native_splash: ^2.4.4
   cached_network_image: ^3.4.1
   flutter_svg: ^2.2.4
   equatable: ^2.0.8
@@ -90,15 +90,6 @@ dev_dependencies:
   freezed: ^3.0.6
   json_serializable: ^6.8.0
 
-flutter_native_splash:
-  color: "#020617"
-  image: "assets/logo/reducer_logo_bg.png"
-  android_12:
-    image: "assets/logo/reducer_logo_bg.png"
-    color: "#020617"
-  ios: true
-  fullscreen: true
-
 flutter:
   generate: true
   uses-material-design: true
@@ -109,7 +100,7 @@ flutter:
 
 
 flutter_launcher_icons:
-  android: "launcher_icon"  # Or true to overwrite adaptive icons
+  android: "launcher_icon"
   ios: true
   image_path: "assets/logo/reducer_logo.jpeg"
-  remove_alpha_ios: true  # Path to your 1024x1024 PNG image
+  remove_alpha_ios: true

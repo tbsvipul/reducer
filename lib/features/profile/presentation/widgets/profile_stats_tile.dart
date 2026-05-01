@@ -34,7 +34,7 @@ class ProfileStatsTile extends StatelessWidget {
                   color: Colors.black.withValues(alpha: 0.02),
                   blurRadius: 10.r,
                   offset: Offset(0, 5.h),
-                )
+                ),
               ]
             : null,
       ),
@@ -52,10 +52,9 @@ class ProfileStatsTile extends StatelessWidget {
           SizedBox(height: 16.h),
           Text(
             value,
-            style: AppTextStyles.headlineSmall(context).copyWith(
-              fontWeight: FontWeight.w900,
-              fontSize: 24.sp,
-            ),
+            style: AppTextStyles.headlineSmall(
+              context,
+            ).copyWith(fontWeight: FontWeight.w900, fontSize: 24.sp),
           ),
           Text(
             label,

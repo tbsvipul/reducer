@@ -14,7 +14,9 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         'name',
         'profileImageUrl',
-        'updatedAt'
+        'updatedAt',
+        'isAccountDisabled',
+        'disabledAt'
       ]);
     }
 
@@ -50,7 +52,8 @@ service cloud.firestore {
           'subscriptionStatus',
           'aiImagesGenerated',
           'createdAt',
-          'updatedAt'
+          'updatedAt',
+          'isAccountDisabled'
         ]);
 
       // Client is never allowed to mutate billing/subscription fields.

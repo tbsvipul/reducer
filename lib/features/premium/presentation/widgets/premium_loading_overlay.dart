@@ -9,7 +9,8 @@ class PremiumLoadingOverlay extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Positioned.fill(
       child: Container(
-        color: (isDark ? AppColors.darkBackground : AppColors.lightBackground).withValues(alpha: 0.7),
+        color: (isDark ? AppColors.darkBackground : AppColors.lightBackground)
+            .withValues(alpha: 0.7),
         child: const Center(
           child: CircularProgressIndicator(
             strokeWidth: 2.8,
@@ -20,4 +21,3 @@ class PremiumLoadingOverlay extends StatelessWidget {
     );
   }
 }
-

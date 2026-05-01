@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:reducer/core/ads/ad_manager.dart';
 import 'package:reducer/core/config/app_config.dart';
@@ -79,6 +80,7 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
 
   bool _purchaseInProgress = false;
+  PurchaseDetails? _activePurchaseDetails;
 
   PurchaseNotifier(this._ref) : super(const PurchaseState()) {
     _init();
@@ -123,6 +125,10 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
     );
 
     await fetchOffersAndCheckStatus();
+
+    if (Platform.isAndroid && state.isPro) {
+      unawaited(_iap.restorePurchases());
+    }
   }
 
   String _sanitizeMessage(String raw) {
@@ -219,11 +225,11 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
             .collection('users')
             .doc(user.uid)
             .get();
-        
+
         if (doc.exists) {
           final userData = AppUser.fromFirestore(doc);
           final remoteStatus = userData.subscriptionStatus;
-          
+
           if (remoteStatus == 'premium') {
             // We trust Firestore status, but trigger background verification if possible
             isPro = true;
@@ -392,9 +398,19 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
       );
     }
 
+    ChangeSubscriptionParam? changeParam;
+    if (_activePurchaseDetails != null &&
+        _activePurchaseDetails is GooglePlayPurchaseDetails) {
+      changeParam = ChangeSubscriptionParam(
+        oldPurchaseDetails: _activePurchaseDetails as GooglePlayPurchaseDetails,
+        replacementMode: ReplacementMode.withTimeProration,
+      );
+    }
+
     return GooglePlayPurchaseParam(
       productDetails: plan.product,
       offerToken: offerToken,
+      changeSubscriptionParam: changeParam,
     );
   }
 
@@ -470,10 +486,6 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
 
   Future<void> _handleSuccessfulPurchase(PurchaseDetails details) async {
     try {
-      if (details.pendingCompletePurchase) {
-        await _iap.completePurchase(details);
-      }
-
       final recognized =
           details.productID == AppConfig.productId ||
           AppConfig.productIds.contains(details.productID);
@@ -485,6 +497,12 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
       if (!verified) {
         throw Exception('Server verification rejected the purchase.');
       }
+
+      if (details.pendingCompletePurchase) {
+        await _iap.completePurchase(details);
+      }
+
+      _activePurchaseDetails = details;
 
       if (!mounted) return;
       state = state.copyWith(

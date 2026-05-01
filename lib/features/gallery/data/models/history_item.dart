@@ -58,7 +58,7 @@ final class HistoryItem extends Equatable {
     // Otherwise, assume it's relative to documents directory
     // If it's absolute but doesn't exist, try to fix it by taking the basename
     if (p.isAbsolute(thumbnailPath)) {
-       return p.join(appDocDir, 'history', p.basename(thumbnailPath));
+      return p.join(appDocDir, 'history', p.basename(thumbnailPath));
     }
     return p.join(appDocDir, thumbnailPath);
   }
@@ -79,17 +79,17 @@ final class HistoryItem extends Equatable {
 
   /// Serialize to JSON for storage.
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'thumbnailPath': thumbnailPath,
-        'originalPath': originalPath,
-        'settings': settings.toJson(),
-        'timestamp': timestamp.toIso8601String(),
-        'originalSize': originalSize,
-        'processedSize': processedSize,
-        'isBulk': isBulk,
-        'itemCount': itemCount,
-        'processedPaths': processedPaths,
-      };
+    'id': id,
+    'thumbnailPath': thumbnailPath,
+    'originalPath': originalPath,
+    'settings': settings.toJson(),
+    'timestamp': timestamp.toIso8601String(),
+    'originalSize': originalSize,
+    'processedSize': processedSize,
+    'isBulk': isBulk,
+    'itemCount': itemCount,
+    'processedPaths': processedPaths,
+  };
 
   /// Deserialize from JSON.
   /// Deserialize from JSON.
@@ -98,7 +98,8 @@ final class HistoryItem extends Equatable {
       if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
       // Handle Firebase Timestamp if it comes from Firestore sync
       try {
-        if (value != null && value.runtimeType.toString().contains('Timestamp')) {
+        if (value != null &&
+            value.runtimeType.toString().contains('Timestamp')) {
           return (value as dynamic).toDate();
         }
       } catch (_) {}
@@ -109,13 +110,19 @@ final class HistoryItem extends Equatable {
       id: json['id'] as String? ?? '',
       thumbnailPath: json['thumbnailPath'] as String? ?? '',
       originalPath: json['originalPath'] as String? ?? '',
-      settings: ImageSettings.fromJson(json['settings'] as Map<String, dynamic>? ?? {}),
+      settings: ImageSettings.fromJson(
+        json['settings'] as Map<String, dynamic>? ?? {},
+      ),
       timestamp: parseTimestamp(json['timestamp']),
       originalSize: (json['originalSize'] as num?)?.toInt() ?? 0,
       processedSize: (json['processedSize'] as num?)?.toInt() ?? 0,
       isBulk: json['isBulk'] as bool? ?? false,
       itemCount: (json['itemCount'] as num?)?.toInt() ?? 1,
-      processedPaths: (json['processedPaths'] as List<dynamic>?)?.whereType<String>().toList() ?? [],
+      processedPaths:
+          (json['processedPaths'] as List<dynamic>?)
+              ?.whereType<String>()
+              .toList() ??
+          [],
     );
   }
 
@@ -148,20 +155,21 @@ final class HistoryItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        thumbnailPath,
-        originalPath,
-        settings,
-        timestamp,
-        originalSize,
-        processedSize,
-        isBulk,
-        itemCount,
-        processedPaths,
-      ];
+    id,
+    thumbnailPath,
+    originalPath,
+    settings,
+    timestamp,
+    originalSize,
+    processedSize,
+    isBulk,
+    itemCount,
+    processedPaths,
+  ];
 
   @override
-  String toString() => 'HistoryItem(id: $id, timestamp: $timestamp, isBulk: $isBulk)';
+  String toString() =>
+      'HistoryItem(id: $id, timestamp: $timestamp, isBulk: $isBulk)';
 
   /// Calculate compression percentage.
   double get compressionPercent {
@@ -169,4 +177,3 @@ final class HistoryItem extends Equatable {
     return ((originalSize - processedSize) / originalSize * 100);
   }
 }
-

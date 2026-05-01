@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' show User;
 
 part 'user_model.freezed.dart';
 part 'user_model.g.dart';
@@ -48,15 +49,17 @@ sealed class AppUser with _$AppUser {
 
     /// Date when the current subscription started.
     DateTime? subscriptionStartDate,
+
     /// Whether the user has disabled their account.
     @Default(false) bool isAccountDisabled,
   }) = _AppUser;
 
   /// Creates an [AppUser] from a JSON map.
-  factory AppUser.fromJson(Map<String, dynamic> json) => _$AppUserFromJson(json);
+  factory AppUser.fromJson(Map<String, dynamic> json) =>
+      _$AppUserFromJson(json);
 
   /// Creates an [AppUser] from a Firebase [User] object.
-  factory AppUser.fromFirebase(dynamic user) {
+  factory AppUser.fromFirebase(User user) {
     return AppUser(
       uid: user.uid,
       email: user.email ?? '',
@@ -72,7 +75,7 @@ sealed class AppUser with _$AppUser {
   /// Creates an [AppUser] from a Firestore [DocumentSnapshot].
   factory AppUser.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
-    
+
     DateTime parseDateTime(dynamic value) {
       if (value is Timestamp) return value.toDate();
       if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
@@ -99,7 +102,9 @@ sealed class AppUser with _$AppUser {
       subscriptionStatus: data['subscriptionStatus'],
       billingPeriod: data['billingPeriod'],
       expiryDate: parseDateTimeNullable(data['expiryDate']),
-      subscriptionStartDate: parseDateTimeNullable(data['subscriptionStartDate']),
+      subscriptionStartDate: parseDateTimeNullable(
+        data['subscriptionStartDate'],
+      ),
       isAccountDisabled: data['isAccountDisabled'] ?? false,
     );
   }

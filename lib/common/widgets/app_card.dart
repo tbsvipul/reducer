@@ -13,6 +13,8 @@ class AppCard extends StatelessWidget {
   final Border? border;
   final Gradient? gradient;
   final VoidCallback? onTap;
+  final String? semanticLabel;
+  final String? tooltip;
 
   const AppCard({
     super.key,
@@ -25,24 +27,33 @@ class AppCard extends StatelessWidget {
     this.border,
     this.gradient,
     this.onTap,
+    this.semanticLabel,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectiveRadius = (borderRadius ?? AppDimensions.radiusLg).r;
-    
-    final Widget card = Container(
+
+    Widget card = Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: gradient == null ? (color ?? (isDark ? AppColors.darkSurface : AppColors.lightSurface)) : null,
+        color: gradient == null
+            ? (color ??
+                  (isDark ? AppColors.darkSurface : AppColors.lightSurface))
+            : null,
         gradient: gradient,
         borderRadius: BorderRadius.circular(effectiveRadius),
-        boxShadow: boxShadow ?? (isDark ? AppColors.cardShadowDark : AppColors.cardShadowLight),
-        border: border ?? Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-          width: 1.r,
-        ),
+        boxShadow:
+            boxShadow ??
+            (isDark ? AppColors.cardShadowDark : AppColors.cardShadowLight),
+        border:
+            border ??
+            Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              width: 1.r,
+            ),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(effectiveRadius),
@@ -50,6 +61,7 @@ class AppCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
+            borderRadius: BorderRadius.circular(effectiveRadius),
             child: Padding(
               padding: padding ?? EdgeInsets.all(AppDimensions.lg.r),
               child: child,
@@ -59,7 +71,14 @@ class AppCard extends StatelessWidget {
       ),
     );
 
+    if (onTap != null) {
+      card = Semantics(button: true, label: semanticLabel, child: card);
+    }
+
+    if (tooltip != null && tooltip!.isNotEmpty) {
+      card = Tooltip(message: tooltip!, child: card);
+    }
+
     return card;
   }
 }
-

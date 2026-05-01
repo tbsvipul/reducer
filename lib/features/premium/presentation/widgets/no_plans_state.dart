@@ -45,13 +45,21 @@ class NoPlansState extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Iconsax.info_circle, size: 40.r, color: Colors.white70),
+                    child: Icon(
+                      Iconsax.info_circle,
+                      size: 40.r,
+                      color: Colors.white70,
+                    ),
                   ),
                   SizedBox(height: 24.h),
                   Text(
                     AppLocalizations.of(context)!.noPlansAvailable,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 8.h),
                   Text(
@@ -62,7 +70,9 @@ class NoPlansState extends ConsumerWidget {
                   SizedBox(height: 40.h),
                   AppButton(
                     label: AppLocalizations.of(context)!.retry,
-                    onPressed: () => ref.read(premiumControllerProvider.notifier).fetchOffersAndCheckStatus(),
+                    onPressed: () => ref
+                        .read(premiumControllerProvider.notifier)
+                        .fetchOffersAndCheckStatus(),
                   ),
                 ],
               ),
@@ -85,4 +95,3 @@ class NoPlansState extends ConsumerWidget {
     );
   }
 }
-

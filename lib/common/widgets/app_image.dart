@@ -52,11 +52,15 @@ class AppImage extends StatelessWidget {
         width: width?.w,
         height: height?.h,
         fit: fit,
-        placeholder: (context, url) => placeholder ?? const Center(child: AppLoader(size: 20)),
-        errorWidget: (context, url, error) => errorWidget ?? const Icon(Icons.broken_image, color: Colors.grey),
+        placeholder: (context, url) =>
+            placeholder ?? const Center(child: AppLoader(size: 20)),
+        errorWidget: (context, url, error) =>
+            errorWidget ?? const Icon(Icons.broken_image, color: Colors.grey),
       );
     } else {
-      image = errorWidget ?? const Icon(Icons.image_not_supported, color: Colors.grey);
+      image =
+          errorWidget ??
+          const Icon(Icons.image_not_supported, color: Colors.grey);
     }
 
     if (borderRadius != null) {

@@ -9,6 +9,8 @@ class AppStartupNotifier extends StateNotifier<bool> {
   }
 }
 
-final appStartupProvider = StateNotifierProvider<AppStartupNotifier, bool>((ref) {
+final appStartupProvider = StateNotifierProvider<AppStartupNotifier, bool>((
+  ref,
+) {
   return AppStartupNotifier();
 });

@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:reducer/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:reducer/features/auth/domain/models/user_model.dart';
 import 'package:reducer/features/auth/domain/repositories/auth_repository.dart';
-import 'package:reducer/features/auth/presentation/providers/auth_providers.dart';
+import 'package:reducer/features/auth/data/services/user_service.dart';
 import 'package:reducer/core/services/cloudinary_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -17,6 +16,11 @@ AuthRepository authRepository(AuthRepositoryRef ref) {
 }
 
 @riverpod
+UserService userService(UserServiceRef ref) {
+  return UserService();
+}
+
+@riverpod
 Stream<AppUser?> authStateChanges(AuthStateChangesRef ref) {
   return ref.watch(authRepositoryProvider).authStateChanges;
 }
@@ -25,12 +29,15 @@ Stream<AppUser?> authStateChanges(AuthStateChangesRef ref) {
 Stream<AppUser?> user(UserRef ref) {
   final authState = ref.watch(authStateChangesProvider).value;
   if (authState == null) return Stream.value(null);
-  
+
   return FirebaseFirestore.instance
       .collection('users')
       .doc(authState.uid)
       .snapshots()
-      .map((snapshot) => snapshot.exists ? AppUser.fromFirestore(snapshot) : authState);
+      .map(
+        (snapshot) =>
+            snapshot.exists ? AppUser.fromFirestore(snapshot) : authState,
+      );
 }
 
 @riverpod
@@ -40,37 +47,26 @@ class AuthController extends _$AuthController {
 
   Future<void> signIn(String email, String password) async {
     state = const AsyncLoading();
-    try {
-      await ref.read(authRepositoryProvider).signInWithEmail(email, password);
-      state = const AsyncData(null);
-    } catch (e, st) {
-      debugPrint('AuthController signIn Error: $e');
-      state = AsyncError(e, st);
-    }
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).signInWithEmail(email, password),
+    );
   }
 
   Future<void> signUp(String email, String password, String displayName) async {
     state = const AsyncLoading();
-    try {
-      await ref.read(authRepositoryProvider).signUpWithEmail(email, password, displayName);
-      state = const AsyncData(null);
-    } catch (e, st) {
-      debugPrint('AuthController signUp Error: $e');
-      state = AsyncError(e, st);
-    }
+    state = await AsyncValue.guard(
+      () => ref
+          .read(authRepositoryProvider)
+          .signUpWithEmail(email, password, displayName),
+    );
   }
 
   Future<void> signInWithGoogle() async {
     state = const AsyncLoading();
-    try {
-      await ref.read(authRepositoryProvider).signInWithGoogle();
-      state = const AsyncData(null);
-    } catch (e, st) {
-      debugPrint('AuthController signInWithGoogle Error: $e');
-      state = AsyncError(e, st);
-    }
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).signInWithGoogle(),
+    );
   }
-
 
   Future<void> signOut() async {
     state = const AsyncLoading();
@@ -88,10 +84,15 @@ class AuthController extends _$AuthController {
     state = result.whenData((_) {});
   }
 
-  Future<void> changePassword(String currentPassword, String newPassword) async {
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
     state = const AsyncLoading();
     final result = await AsyncValue.guard(
-      () => ref.read(authRepositoryProvider).changePassword(currentPassword, newPassword),
+      () => ref
+          .read(authRepositoryProvider)
+          .changePassword(currentPassword, newPassword),
     );
     state = result.whenData((_) {});
   }

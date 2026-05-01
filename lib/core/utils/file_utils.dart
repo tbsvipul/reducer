@@ -1,5 +1,3 @@
-
-
 class FileUtils {
   /// General file size formatting (e.g. 1.2 MB)
   static String formatBytes(int bytes) {
@@ -23,4 +21,3 @@ class FileUtils {
   static String formatFileSize(int bytes) => formatBytes(bytes);
   static String formatFileSizeDetailed(int bytes) => formatBytesDetailed(bytes);
 }
-

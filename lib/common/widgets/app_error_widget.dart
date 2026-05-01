@@ -9,11 +9,7 @@ class AppErrorWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  const AppErrorWidget({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+  const AppErrorWidget({super.key, required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -25,16 +21,14 @@ class AppErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64.r,
-              color: AppColors.error,
-            ),
+            Icon(Icons.error_outline, size: 64.r, color: AppColors.error),
             SizedBox(height: AppDimensions.lg.h),
             Text(
               'Something went wrong',
               style: AppTextStyles.titleLarge(context).copyWith(
-                color: isDark ? AppColors.onDarkSurface : AppColors.onLightSurface,
+                color: isDark
+                    ? AppColors.onDarkSurface
+                    : AppColors.onLightSurface,
               ),
             ),
             SizedBox(height: AppDimensions.sm.h),
@@ -42,7 +36,9 @@ class AppErrorWidget extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium(context).copyWith(
-                color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                color: isDark
+                    ? AppColors.onDarkSurfaceVariant
+                    : AppColors.onLightSurfaceVariant,
               ),
             ),
             if (onRetry != null) ...[

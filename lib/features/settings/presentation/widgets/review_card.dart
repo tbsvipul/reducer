@@ -20,9 +20,13 @@ class ReviewCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark ? AppColors.darkSurfaceGradient : AppColors.lightSurfaceGradient,
+          colors: isDark
+              ? AppColors.darkSurfaceGradient
+              : AppColors.lightSurfaceGradient,
         ),
-        boxShadow: isDark ? AppColors.cardShadowDark : AppColors.cardShadowLight,
+        boxShadow: isDark
+            ? AppColors.cardShadowDark
+            : AppColors.cardShadowLight,
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
           width: 1,
@@ -42,51 +46,57 @@ class ReviewCard extends StatelessWidget {
                 color: AppColors.premium.withValues(alpha: 0.05),
               ),
             ),
-            
+
             Padding(
               padding: const EdgeInsets.all(AppDimensions.pagePadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(AppDimensions.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.premium.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Iconsax.star5,
-                      color: AppColors.premium,
-                      size: AppDimensions.iconXl,
-                    ),
-                  ).animate(onPlay: (c) => c.repeat()).shimmer(
+                        padding: const EdgeInsets.all(AppDimensions.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.premium.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Iconsax.star5,
+                          color: AppColors.premium,
+                          size: AppDimensions.iconXl,
+                        ),
+                      )
+                      .animate(onPlay: (c) => c.repeat())
+                      .shimmer(
                         delay: 2000.ms,
                         duration: 1500.ms,
-                        color: isDark ? Colors.white24 : AppColors.primary.withValues(alpha: 0.2),
+                        color: isDark
+                            ? Colors.white24
+                            : AppColors.primary.withValues(alpha: 0.2),
                       ),
-                  
+
                   const SizedBox(height: AppDimensions.lg),
-                  
+
                   Text(
                     'Enjoying Reducer?',
-                    style: AppTextStyles.titleMedium(context).copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTextStyles.titleMedium(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   const SizedBox(height: AppDimensions.xs),
-                  
+
                   Text(
                     'Your feedback helps us grow and improve.',
                     style: AppTextStyles.bodyMedium(context).copyWith(
-                      color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                      color: isDark
+                          ? AppColors.onDarkSurfaceVariant
+                          : AppColors.onLightSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   const SizedBox(height: AppDimensions.xl),
-                  
+
                   // Star Rating Mockup
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -96,15 +106,15 @@ class ReviewCard extends StatelessWidget {
                         color: AppColors.premium,
                         size: AppDimensions.iconLg,
                       ).animate().scale(
-                            delay: (index * 100).ms,
-                            duration: 400.ms,
-                            curve: Curves.easeOutBack,
-                          );
+                        delay: (index * 100).ms,
+                        duration: 400.ms,
+                        curve: Curves.easeOutBack,
+                      );
                     }),
                   ),
-                  
+
                   const SizedBox(height: AppDimensions.xl),
-                  
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -112,9 +122,13 @@ class ReviewCard extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.premium,
                         foregroundColor: AppColors.onPremium,
-                        padding: const EdgeInsets.symmetric(vertical: AppDimensions.lg),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppDimensions.lg,
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusLg,
+                          ),
                         ),
                         elevation: 0,
                       ),

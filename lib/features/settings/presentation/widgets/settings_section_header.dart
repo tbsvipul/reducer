@@ -6,20 +6,21 @@ import 'package:reducer/core/theme/app_text_styles.dart';
 class SettingsSectionHeader extends StatelessWidget {
   final String title;
 
-  const SettingsSectionHeader({
-    super.key,
-    required this.title,
-  });
+  const SettingsSectionHeader({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return  Padding(
-      padding: const EdgeInsets.only(left: AppDimensions.sm, bottom: AppDimensions.sm),
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: AppDimensions.sm,
+        bottom: AppDimensions.sm,
+      ),
       child: Text(
         title,
-        style: AppTextStyles.labelLarge(context).copyWith(color: AppColors.primary),
+        style: AppTextStyles.labelLarge(
+          context,
+        ).copyWith(color: AppColors.primary),
       ),
     );
   }
 }
-

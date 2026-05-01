@@ -28,8 +28,9 @@ class AppStatusBar extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: (color ?? (isDark ? AppColors.darkSurface : AppColors.lightSurface))
-            .withValues(alpha: 0.8),
+        color:
+            (color ?? (isDark ? AppColors.darkSurface : AppColors.lightSurface))
+                .withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
@@ -39,11 +40,7 @@ class AppStatusBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              size: 16,
-              color: color ?? AppColors.primary,
-            ),
+            Icon(icon, size: 16, color: color ?? AppColors.primary),
             const SizedBox(width: AppSpacing.sm),
           ],
           Column(
@@ -54,14 +51,18 @@ class AppStatusBar extends StatelessWidget {
                 title,
                 style: AppTextStyles.labelMedium(context).copyWith(
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.onDarkSurface : AppColors.onLightSurface,
+                  color: isDark
+                      ? AppColors.onDarkSurface
+                      : AppColors.onLightSurface,
                 ),
               ),
               if (subtitle != null)
                 Text(
                   subtitle!,
                   style: AppTextStyles.labelSmall(context).copyWith(
-                    color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                    color: isDark
+                        ? AppColors.onDarkSurfaceVariant
+                        : AppColors.onLightSurfaceVariant,
                   ),
                 ),
             ],
@@ -70,8 +71,14 @@ class AppStatusBar extends StatelessWidget {
       ),
     );
   }
+
   static void showSuccess(BuildContext context, String message) {
-    _showSnackBar(context, message, AppColors.success, Icons.check_circle_outline);
+    _showSnackBar(
+      context,
+      message,
+      AppColors.success,
+      Icons.check_circle_outline,
+    );
   }
 
   static void showError(BuildContext context, String message) {
@@ -96,10 +103,7 @@ class AppStatusBar extends StatelessWidget {
             Icon(icon, color: Colors.white, size: 20),
             const SizedBox(width: AppSpacing.md),
             Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white),
-              ),
+              child: Text(message, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -113,4 +117,3 @@ class AppStatusBar extends StatelessWidget {
     );
   }
 }
-

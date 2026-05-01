@@ -33,10 +33,12 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _shareApp(BuildContext context) {
-    SharePlus.instance.share(ShareParams(
-      text: AppLocalizations.of(context)!.shareAppText(_appStoreUrl),
-      subject: 'Reducer',
-    ));
+    SharePlus.instance.share(
+      ShareParams(
+        text: AppLocalizations.of(context)!.shareAppText(_appStoreUrl),
+        subject: 'Reducer',
+      ),
+    );
   }
 
   Future<void> _showDeleteAccountDialog(
@@ -45,39 +47,43 @@ class SettingsScreen extends ConsumerWidget {
   ) async {
     final user = ref.read(authRepositoryProvider).currentUser;
     if (user == null || user.isAnonymous) {
-      debugPrint('Account Deletion Error: Please login before requesting account deletion.');
+      debugPrint(
+        'Account Deletion Error: Please login before requesting account deletion.',
+      );
       return;
     }
 
-    unawaited(AppDialog.show(
-      context,
-      title: 'Delete Account?',
-      message: 'This will permanently delete your account and all data. This action cannot be undone.',
-      confirmLabel: 'Delete Permanently',
-      cancelLabel: 'Cancel',
-      type: AppDialogType.error,
-      onConfirm: () async {
-        try {
-          AppDialog.showLoading(context);
-          await ref.read(authControllerProvider.notifier).deleteAccount();
+    unawaited(
+      AppDialog.show(
+        context,
+        title: AppLocalizations.of(context)!.deleteAccount,
+        message: AppLocalizations.of(context)!.deleteAccountConfirmation,
+        confirmLabel: AppLocalizations.of(context)!.delete,
+        cancelLabel: AppLocalizations.of(context)!.cancel,
+        type: AppDialogType.error,
+        onConfirm: () async {
+          try {
+            AppDialog.showLoading(context);
+            await ref.read(authControllerProvider.notifier).deleteAccount();
 
-          if (context.mounted) {
-            Navigator.pop(context); // Pop loading
-            AppSnackbar.show(context, 'Account deleted successfully.');
+            if (context.mounted) {
+              Navigator.pop(context); // Pop loading
+              AppSnackbar.show(context, AppLocalizations.of(context)!.success);
+            }
+          } catch (e) {
+            if (context.mounted) {
+              Navigator.pop(context); // Pop loading
+              debugPrint('Account Deletion Error: $e');
+              AppSnackbar.show(
+                context,
+                AppLocalizations.of(context)!.errorOccurred,
+                type: AppSnackbarType.error,
+              );
+            }
           }
-        } catch (e) {
-          if (context.mounted) {
-            Navigator.pop(context); // Pop loading
-            debugPrint('Account Deletion Error: $e');
-            AppSnackbar.show(
-              context, 
-              'Deletion failed. For security, you may need to logout and log back in before deleting your account.', 
-              type: AppSnackbarType.error
-            );
-          }
-        }
-      },
-    ));
+        },
+      ),
+    );
   }
 
   @override
@@ -106,9 +112,19 @@ class SettingsScreen extends ConsumerWidget {
 
             Card(
               child: ListTile(
-                leading: Icon(Iconsax.crown, color: AppColors.premium, size: 24.r),
-                title: Text(l10n.upgradeToPro, style: TextStyle(fontSize: 16.sp)),
-                subtitle: Text(l10n.upgradeSubtitle, style: TextStyle(fontSize: 14.sp)),
+                leading: Icon(
+                  Iconsax.crown,
+                  color: AppColors.premium,
+                  size: 24.r,
+                ),
+                title: Text(
+                  l10n.upgradeToPro,
+                  style: TextStyle(fontSize: 16.sp),
+                ),
+                subtitle: Text(
+                  l10n.upgradeSubtitle,
+                  style: TextStyle(fontSize: 14.sp),
+                ),
                 trailing: Icon(Iconsax.arrow_right_3, size: 16.r),
                 onTap: () => context.push('/premium'),
               ),
@@ -119,9 +135,16 @@ class SettingsScreen extends ConsumerWidget {
 
             Card(
               child: ListTile(
-                leading: Icon(Iconsax.verify, color: AppColors.success, size: 24.r),
+                leading: Icon(
+                  Iconsax.verify,
+                  color: AppColors.success,
+                  size: 24.r,
+                ),
                 title: Text(l10n.proActive, style: TextStyle(fontSize: 16.sp)),
-                subtitle: Text(l10n.supportThanks, style: TextStyle(fontSize: 14.sp)),
+                subtitle: Text(
+                  l10n.supportThanks,
+                  style: TextStyle(fontSize: 14.sp),
+                ),
                 onTap: () => context.push('/premium'),
               ),
             ),
@@ -175,14 +198,14 @@ class SettingsScreen extends ConsumerWidget {
 
           // ── Account Section ──────────────────────────────────────────────
           if (authUser != null && !authUser.isAnonymous) ...[
-            const SettingsSectionHeader(title: 'Account'),
+            SettingsSectionHeader(title: l10n.accountStudio),
             Card(
               clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   SettingsTile(
                     icon: Iconsax.user_remove,
-                    title: 'Delete Account',
+                    title: l10n.deleteAccount,
                     onTap: () => _showDeleteAccountDialog(context, ref),
                   ),
                 ],
@@ -213,7 +236,10 @@ class SettingsScreen extends ConsumerWidget {
                     final build = snapshot.data?.buildNumber ?? '1';
                     return ListTile(
                       leading: Icon(Iconsax.info_circle, size: 24.r),
-                      title: Text(l10n.version, style: TextStyle(fontSize: 16.sp)),
+                      title: Text(
+                        l10n.version,
+                        style: TextStyle(fontSize: 16.sp),
+                      ),
                       trailing: Text(
                         '$version ($build)',
                         style: TextStyle(

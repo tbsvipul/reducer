@@ -23,7 +23,8 @@ class BulkHistoryDetailScreen extends StatefulWidget {
   const BulkHistoryDetailScreen({super.key, required this.item});
 
   @override
-  State<BulkHistoryDetailScreen> createState() => _BulkHistoryDetailScreenState();
+  State<BulkHistoryDetailScreen> createState() =>
+      _BulkHistoryDetailScreenState();
 }
 
 class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
@@ -40,7 +41,7 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
   Future<void> _initAppDir() async {
     final dir = await getApplicationDocumentsDirectory();
     final paths = widget.item.getAbsoluteProcessedPaths(dir.path);
-    
+
     // Pre-calculate file sizes to avoid FutureBuilder in ListView
     final sizes = <String, int>{};
     for (final path in paths) {
@@ -69,7 +70,9 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       appBar: AppBar(
         title: Text(l10n.bulkSessionDetails),
         backgroundColor: Colors.transparent,
@@ -94,7 +97,11 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                         color: AppColors.warning.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Iconsax.grid_5, color: AppColors.warning, size: 24.r),
+                      child: Icon(
+                        Iconsax.grid_5,
+                        color: AppColors.warning,
+                        size: 24.r,
+                      ),
                     ),
                     SizedBox(width: AppDimensions.md.w),
                     Expanded(
@@ -103,12 +110,18 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                         children: [
                           Text(
                             l10n.xImagesProcessed(widget.item.itemCount),
-                            style: AppTextStyles.titleMedium(context).copyWith(fontWeight: FontWeight.bold),
+                            style: AppTextStyles.titleMedium(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            DateFormat('MMMM dd, yyyy • HH:mm').format(widget.item.timestamp),
+                            DateFormat(
+                              'MMMM dd, yyyy • HH:mm',
+                            ).format(widget.item.timestamp),
                             style: AppTextStyles.labelSmall(context).copyWith(
-                              color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                              color: isDark
+                                  ? AppColors.onDarkSurfaceVariant
+                                  : AppColors.onLightSurfaceVariant,
                             ),
                           ),
                         ],
@@ -120,9 +133,18 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStat(l10n.format, widget.item.settings.format.name.toUpperCase()),
-                    _buildStat(l10n.imageQuality, '${widget.item.settings.quality}%'),
-                    _buildStat('Total Sav.', '${widget.item.compressionPercent.toStringAsFixed(1)}%'),
+                    _buildStat(
+                      l10n.format,
+                      widget.item.settings.format.name.toUpperCase(),
+                    ),
+                    _buildStat(
+                      l10n.imageQuality,
+                      '${widget.item.settings.quality}%',
+                    ),
+                    _buildStat(
+                      'Total Sav.',
+                      '${widget.item.compressionPercent.toStringAsFixed(1)}%',
+                    ),
                   ],
                 ),
               ],
@@ -130,12 +152,17 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
           ),
 
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w, vertical: AppDimensions.sm.h),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppDimensions.lg.w,
+              vertical: AppDimensions.sm.h,
+            ),
             child: Row(
               children: [
                 Text(
                   'Processed Images',
-                  style: AppTextStyles.titleSmall(context).copyWith(fontWeight: FontWeight.bold),
+                  style: AppTextStyles.titleSmall(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -143,26 +170,38 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
 
           // List of images
           Expanded(
-            child: _resolvedPaths.isEmpty && (_appDocDir != null || widget.item.processedPaths.isEmpty)
+            child:
+                _resolvedPaths.isEmpty &&
+                    (_appDocDir != null || widget.item.processedPaths.isEmpty)
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Iconsax.image, size: 48.r, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        Icon(
+                          Iconsax.image,
+                          size: 48.r,
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.lightBorder,
+                        ),
                         SizedBox(height: AppDimensions.md.h),
                         Text(
-                          _appDocDir == null 
-                              ? l10n.loadingImages 
+                          _appDocDir == null
+                              ? l10n.loadingImages
                               : l10n.noImagesFoundInSession,
                           style: AppTextStyles.labelMedium(context).copyWith(
-                            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                            color: isDark
+                                ? AppColors.onDarkSurfaceVariant
+                                : AppColors.onLightSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: AppDimensions.md.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppDimensions.md.w,
+                    ),
                     itemCount: _resolvedPaths.length,
                     itemBuilder: (context, index) {
                       final path = _resolvedPaths[index];
@@ -173,14 +212,24 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                         margin: EdgeInsets.only(bottom: AppDimensions.md.h),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
-                          side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusMd.r,
+                          ),
+                          side: BorderSide(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.lightBorder,
+                          ),
                         ),
-                        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                        color: isDark
+                            ? AppColors.darkSurface
+                            : AppColors.lightSurface,
                         child: ListTile(
                           contentPadding: EdgeInsets.all(AppDimensions.sm.r),
                           leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(AppDimensions.radiusSm.r),
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusSm.r,
+                            ),
                             child: file.existsSync()
                                 ? Image.file(
                                     file,
@@ -193,7 +242,9 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                                 : Container(
                                     width: 60.r,
                                     height: 60.r,
-                                    color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+                                    color: isDark
+                                        ? AppColors.darkSurfaceVariant
+                                        : AppColors.lightSurfaceVariant,
                                     child: Icon(Iconsax.image, size: 24.r),
                                   ),
                           ),
@@ -201,7 +252,9 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                             fileName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.labelMedium(context).copyWith(fontWeight: FontWeight.w600),
+                            style: AppTextStyles.labelMedium(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.w600),
                           ),
                           subtitle: Text(
                             _fileSizes.containsKey(path)
@@ -213,20 +266,34 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: Icon(Iconsax.share, size: 20.r, color: AppColors.secondary),
+                                icon: Icon(
+                                  Iconsax.share,
+                                  size: 20.r,
+                                  color: AppColors.secondary,
+                                ),
                                 onPressed: () async {
                                   if (file.existsSync()) {
-                                    await SharePlus.instance.share(ShareParams(files: [XFile(path)]));
+                                    await SharePlus.instance.share(
+                                      ShareParams(files: [XFile(path)]),
+                                    );
                                   }
                                 },
                               ),
                               IconButton(
-                                icon: Icon(Iconsax.save_2, size: 20.r, color: AppColors.primary),
+                                icon: Icon(
+                                  Iconsax.save_2,
+                                  size: 20.r,
+                                  color: AppColors.primary,
+                                ),
                                 onPressed: () async {
                                   if (file.existsSync()) {
-                                    final ok = await PermissionService.instance.ensurePhotosPermission(context);
+                                    final ok = await PermissionService.instance
+                                        .ensurePhotosPermission(context);
                                     if (ok && mounted) {
-                                      await Gal.putImage(path, album: 'Reducer');
+                                      await Gal.putImage(
+                                        path,
+                                        album: 'Reducer',
+                                      );
                                       if (context.mounted) {
                                         AppSnackbar.show(
                                           context,
@@ -253,9 +320,17 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
   Widget _buildStat(String label, String value) {
     return Column(
       children: [
-        Text(label, style: AppTextStyles.labelSmall(context).copyWith(color: Colors.grey)),
+        Text(
+          label,
+          style: AppTextStyles.labelSmall(context).copyWith(color: Colors.grey),
+        ),
         SizedBox(height: 4.h),
-        Text(value, style: AppTextStyles.titleSmall(context).copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: AppTextStyles.titleSmall(
+            context,
+          ).copyWith(fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -266,5 +341,3 @@ class _BulkHistoryDetailScreenState extends State<BulkHistoryDetailScreen> {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
   }
 }
-
-

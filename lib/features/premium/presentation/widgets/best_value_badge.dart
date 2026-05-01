@@ -8,7 +8,10 @@ class BestValueBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.md,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(colors: AppColors.premiumGradient),
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
@@ -25,4 +28,3 @@ class BestValueBadge extends StatelessWidget {
     );
   }
 }
-

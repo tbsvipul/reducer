@@ -73,7 +73,9 @@ class AppTextField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: AppTextStyles.bodyMedium(context).copyWith(
-              color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+              color: isDark
+                  ? AppColors.onDarkSurfaceVariant
+                  : AppColors.onLightSurfaceVariant,
             ),
             prefixIcon: prefix,
             suffixIcon: suffix,
@@ -96,24 +98,15 @@ class AppTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
-              borderSide: BorderSide(
-                color: AppColors.primary,
-                width: 1.5.r,
-              ),
+              borderSide: BorderSide(color: AppColors.primary, width: 1.5.r),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
-              borderSide: BorderSide(
-                color: AppColors.error,
-                width: 1.r,
-              ),
+              borderSide: BorderSide(color: AppColors.error, width: 1.r),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
-              borderSide: BorderSide(
-                color: AppColors.error,
-                width: 1.5.r,
-              ),
+              borderSide: BorderSide(color: AppColors.error, width: 1.5.r),
             ),
           ),
         ),

@@ -37,11 +37,15 @@ class FirestoreSyncService {
         return;
       } catch (e) {
         attempts++;
-        debugPrint('[SyncService] Sync attempt $attempts failed for item ${item.id}: $e');
+        debugPrint(
+          '[SyncService] Sync attempt $attempts failed for item ${item.id}: $e',
+        );
         if (attempts >= maxRetries) {
           debugPrint('[SyncService] Max retries reached for item ${item.id}.');
         } else {
-          await Future.delayed(Duration(seconds: attempts * 2)); // Exponential backoff
+          await Future.delayed(
+            Duration(seconds: attempts * 2),
+          ); // Exponential backoff
         }
       }
     }
@@ -65,14 +69,14 @@ class FirestoreSyncService {
 
     return _historyCollection!
         .orderBy('timestamp', descending: true)
-        .limit(limit) 
+        .limit(limit)
         .snapshots(includeMetadataChanges: true)
         .distinct()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return HistoryItem.fromJson(doc.data() as Map<String, dynamic>);
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            return HistoryItem.fromJson(doc.data() as Map<String, dynamic>);
+          }).toList();
+        });
   }
 
   /// Mass upload local items (useful after signing in).
@@ -82,7 +86,9 @@ class FirestoreSyncService {
     // Firestore batch limit is 500 operations.
     final chunks = <List<HistoryItem>>[];
     for (var i = 0; i < items.length; i += 500) {
-      chunks.add(items.sublist(i, i + 500 > items.length ? items.length : i + 500));
+      chunks.add(
+        items.sublist(i, i + 500 > items.length ? items.length : i + 500),
+      );
     }
 
     for (final chunk in chunks) {
@@ -93,11 +99,12 @@ class FirestoreSyncService {
 
       try {
         await batch.commit();
-        debugPrint('[SyncService] Batch sync of ${chunk.length} items complete.');
+        debugPrint(
+          '[SyncService] Batch sync of ${chunk.length} items complete.',
+        );
       } catch (e) {
         debugPrint('[SyncService] Batch sync failed: $e');
       }
     }
   }
 }
-

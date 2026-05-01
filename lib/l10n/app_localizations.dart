@@ -1811,6 +1811,30 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get delete;
 
+  /// No description provided for @deletePermanently.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Permanently'**
+  String get deletePermanently;
+
+  /// No description provided for @accountDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted successfully.'**
+  String get accountDeletedSuccess;
+
+  /// No description provided for @deleteAccountReauthNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion failed. For security, you may need to log out and log back in before deleting your account.'**
+  String get deleteAccountReauthNeeded;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
   /// No description provided for @buy.
   ///
   /// In en, this message translates to:
@@ -1834,6 +1858,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restored Successfully!'**
   String get successRestore;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @noProcessedImageYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No processed image yet'**
+  String get noProcessedImageYet;
+
+  /// No description provided for @processImageFirstHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to the Settings tab and tap \"Process Image\".'**
+  String get processImageFirstHint;
+
+  /// No description provided for @beforeOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Before (Original)'**
+  String get beforeOriginal;
+
+  /// No description provided for @afterProcessed.
+  ///
+  /// In en, this message translates to:
+  /// **'After (Processed)'**
+  String get afterProcessed;
+
+  /// No description provided for @comparePreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Processed image preview'**
+  String get comparePreviewLabel;
+
+  /// No description provided for @holdImageToCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold image to compare'**
+  String get holdImageToCompare;
+
+  /// No description provided for @sizeReducedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size Reduced'**
+  String get sizeReducedLabel;
+
+  /// No description provided for @noName.
+  ///
+  /// In en, this message translates to:
+  /// **'No Name'**
+  String get noName;
+
+  /// No description provided for @verifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Email'**
+  String get verifyEmail;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
 }
 
 class _AppLocalizationsDelegate

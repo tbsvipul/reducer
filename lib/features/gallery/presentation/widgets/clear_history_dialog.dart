@@ -5,10 +5,7 @@ import 'package:reducer/l10n/app_localizations.dart';
 class ClearHistoryDialog extends StatelessWidget {
   final VoidCallback onClear;
 
-  const ClearHistoryDialog({
-    super.key,
-    required this.onClear,
-  });
+  const ClearHistoryDialog({super.key, required this.onClear});
 
   @override
   Widget build(BuildContext context) {
@@ -33,4 +30,3 @@ class ClearHistoryDialog extends StatelessWidget {
     );
   }
 }
-

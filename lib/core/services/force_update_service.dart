@@ -12,9 +12,9 @@ class ForceUpdateService {
 
   Future<void> checkAndEnforce(BuildContext context) async {
     if (_isShowingDialog) return;
-    
+
     final config = RemoteConfigService();
-    
+
     // 1. Check Maintenance Mode
     if (config.maintenanceMode) {
       _isShowingDialog = true;
@@ -52,7 +52,7 @@ class ForceUpdateService {
     for (int i = 0; i < maxLength; i++) {
       final int currentPart = i < currentParts.length ? currentParts[i] : 0;
       final int targetPart = i < targetParts.length ? targetParts[i] : 0;
-      
+
       if (currentPart < targetPart) return true;
       if (currentPart > targetPart) return false;
     }
@@ -72,7 +72,11 @@ class ForceUpdateService {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.build_circle_outlined, size: 80, color: Colors.blueGrey),
+                  Icon(
+                    Icons.build_circle_outlined,
+                    size: 80,
+                    color: Colors.blueGrey,
+                  ),
                   SizedBox(height: 24),
                   Text(
                     'Under Maintenance',

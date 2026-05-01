@@ -1,28 +1,29 @@
-import 'dart:ui';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:reducer/core/localization/locale_provider.dart';
+import 'package:reducer/core/theme/app_breakpoints.dart';
 import 'package:reducer/core/theme/app_colors.dart';
+import 'package:reducer/core/theme/app_text_styles.dart';
 import 'package:reducer/l10n/app_localizations.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../constants/languages.dart';
+
 import '../../domain/models/app_language.dart';
+import '../constants/languages.dart';
 
 class LanguageSelectionPage extends ConsumerStatefulWidget {
   final bool isFromSettings;
 
-  const LanguageSelectionPage({
-    super.key,
-    this.isFromSettings = false,
-  });
+  const LanguageSelectionPage({super.key, this.isFromSettings = false});
 
   @override
-  ConsumerState<LanguageSelectionPage> createState() => _LanguageSelectionPageState();
+  ConsumerState<LanguageSelectionPage> createState() =>
+      _LanguageSelectionPageState();
 }
 
 class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
@@ -39,7 +40,11 @@ class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final currentLocale = ref.watch(localeProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final reduceMotion =
+        MediaQuery.of(context).disableAnimations ||
+        MediaQuery.of(context).accessibleNavigation;
 
     final filteredLanguages = AppLanguages.all.where((lang) {
       final name = lang.name.toLowerCase();
@@ -49,35 +54,43 @@ class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       body: Stack(
         children: [
-          // Background Glows for Premium Feel
-          _buildBackgroundGlows(isDark),
-
+          _buildBackgroundGlows(isDark, reduceMotion),
           SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 10.h),
-                // Header
-                _buildHeader(context, l10n, isDark),
-
-                SizedBox(height: 24.h),
-
-                // Search Bar
-                _buildSearchBar(l10n, isDark),
-
-                SizedBox(height: 24.h),
-
-                // Language List
-                Expanded(
-                  child: _buildLanguageList(filteredLanguages, currentLocale, isDark),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: AppBreakpoints.contentMaxWidth(
+                    context,
+                    compactWidth: 680,
+                    mediumWidth: 760,
+                    expandedWidth: 860,
+                  ),
                 ),
-
-                // Continue Button (Only shown during onboarding)
-                if (!widget.isFromSettings) _buildContinueButton(l10n),
-              ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 10.h),
+                    _buildHeader(context, l10n, isDark),
+                    SizedBox(height: 24.h),
+                    _buildSearchBar(l10n, isDark),
+                    SizedBox(height: 24.h),
+                    Expanded(
+                      child: _buildLanguageList(
+                        filteredLanguages,
+                        currentLocale,
+                        isDark,
+                        reduceMotion,
+                      ),
+                    ),
+                    if (!widget.isFromSettings) _buildContinueButton(l10n),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -85,85 +98,91 @@ class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
     );
   }
 
-  Widget _buildBackgroundGlows(bool isDark) {
+  Widget _buildBackgroundGlows(bool isDark, bool reduceMotion) {
+    Widget animatedGlow({
+      required double top,
+      required double left,
+      required double size,
+      required Color color,
+      required Duration duration,
+      required Offset endScale,
+    }) {
+      final glow = Positioned(
+        top: top,
+        left: left,
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+        ),
+      );
+
+      if (reduceMotion) {
+        return glow;
+      }
+
+      return glow
+          .animate(onPlay: (controller) => controller.repeat(reverse: true))
+          .scale(duration: duration, begin: const Offset(1, 1), end: endScale);
+    }
+
     return Positioned.fill(
       child: Stack(
         children: [
-          Positioned(
-            top: -100.h,
-            right: -100.w,
-            child: Container(
-              width: 300.r,
-              height: 300.r,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.05),
-              ),
-            ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
-                  duration: 5.seconds,
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.2, 1.2),
-                ),
+          animatedGlow(
+            top: -100,
+            left: MediaQuery.sizeOf(context).width - 220,
+            size: 300,
+            color: AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.05),
+            duration: 5.seconds,
+            endScale: const Offset(1.2, 1.2),
           ),
-          Positioned(
-            bottom: -50.h,
-            left: -50.w,
-            child: Container(
-              width: 250.r,
-              height: 250.r,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.secondary.withValues(alpha: isDark ? 0.05 : 0.03),
-              ),
-            ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
-                  duration: 7.seconds,
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.3, 1.3),
-                ),
+          animatedGlow(
+            top: MediaQuery.sizeOf(context).height - 220,
+            left: -50,
+            size: 250,
+            color: AppColors.secondary.withValues(alpha: isDark ? 0.05 : 0.03),
+            duration: 7.seconds,
+            endScale: const Offset(1.3, 1.3),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, AppLocalizations l10n, bool isDark) {
+  Widget _buildHeader(
+    BuildContext context,
+    AppLocalizations l10n,
+    bool isDark,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Row(
         children: [
           if (widget.isFromSettings)
-            GestureDetector(
-              onTap: () => context.pop(),
-              child: Container(
-                padding: EdgeInsets.all(8.r),
-                margin: EdgeInsets.only(right: 16.w),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.onDarkBackground.withValues(alpha: 0.05) : AppColors.onLightBackground.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(color: isDark ? AppColors.onDarkBackground.withValues(alpha: 0.1) : AppColors.onLightBackground.withValues(alpha: 0.05)),
-                ),
-                child: Icon(Icons.arrow_back_ios_new, color: isDark ? AppColors.onDarkBackground : AppColors.onLightBackground, size: 18.r),
-              ),
+            IconButton.filledTonal(
+              tooltip: l10n.cancel,
+              onPressed: () => context.pop(),
+              icon: const Icon(Icons.arrow_back_ios_new),
             ),
+          if (widget.isFromSettings) SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   l10n.selectLanguage,
-                  style: TextStyle(
-                    color: isDark ? AppColors.onDarkBackground : AppColors.onLightBackground,
-                    fontSize: 26.sp,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5.w,
-                  ),
+                  style: AppTextStyles.headlineMedium(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
                 ),
                 if (!widget.isFromSettings)
                   Text(
                     l10n.setupLanguageSubtitle,
-                    style: TextStyle(
-                      color: isDark ? AppColors.onDarkBackground.withValues(alpha: 0.5) : AppColors.onLightSurfaceVariant,
-                      fontSize: 13.sp,
+                    style: AppTextStyles.bodyMedium(context).copyWith(
+                      color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -176,46 +195,59 @@ class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
   }
 
   Widget _buildSearchBar(AppLocalizations l10n, bool isDark) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.onDarkBackground.withValues(alpha: 0.05) : AppColors.onLightBackground.withValues(alpha: 0.03),
+          color: isDark
+              ? AppColors.onDarkBackground.withValues(alpha: 0.05)
+              : AppColors.onLightBackground.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
-            color: _searchQuery.isNotEmpty 
-                ? AppColors.primary.withValues(alpha: 0.4) 
-                : (isDark ? AppColors.onDarkBackground.withValues(alpha: 0.1) : AppColors.onLightBackground.withValues(alpha: 0.05)),
-            width: 1.w,
+            color: _searchQuery.isNotEmpty
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : colorScheme.outline.withValues(alpha: 0.55),
           ),
         ),
         child: TextField(
           controller: _searchController,
           onChanged: (value) => setState(() => _searchQuery = value),
-          style: TextStyle(color: isDark ? AppColors.onDarkBackground : AppColors.onLightBackground, fontSize: 15.sp),
+          style: TextStyle(
+            color: isDark
+                ? AppColors.onDarkBackground
+                : AppColors.onLightBackground,
+          ),
           cursorColor: AppColors.primary,
           decoration: InputDecoration(
             hintText: l10n.searchLanguage,
-            hintStyle: TextStyle(
-              color: isDark ? AppColors.onDarkBackground.withValues(alpha: 0.3) : AppColors.onLightSurfaceVariant,
-              fontSize: 14.sp,
-            ),
+            hintStyle: AppTextStyles.bodyMedium(
+              context,
+            ).copyWith(color: colorScheme.onSurfaceVariant),
             prefixIcon: Icon(
-              Iconsax.search_normal, 
-              color: _searchQuery.isNotEmpty ? AppColors.primary : (isDark ? AppColors.onDarkBackground.withValues(alpha: 0.4) : AppColors.onLightSurfaceVariant), 
-              size: 20.r
+              Iconsax.search_normal,
+              color: _searchQuery.isNotEmpty
+                  ? AppColors.primary
+                  : colorScheme.onSurfaceVariant,
+              size: 20.r,
             ),
-            suffixIcon: _searchQuery.isNotEmpty 
-              ? IconButton(
-                  icon: Icon(Icons.close, color: isDark ? AppColors.onDarkBackground.withValues(alpha: 0.54) : AppColors.onLightSurfaceVariant, size: 16.r),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                    unawaited(HapticFeedback.lightImpact());
-                  },
-                ) 
-              : null,
+            suffixIcon: _searchQuery.isNotEmpty
+                ? IconButton(
+                    tooltip: l10n.cancel,
+                    icon: Icon(
+                      Icons.close,
+                      color: colorScheme.onSurfaceVariant,
+                      size: 16.r,
+                    ),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
+                      unawaited(HapticFeedback.lightImpact());
+                    },
+                  )
+                : null,
             border: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 14.h),
           ),
@@ -224,7 +256,12 @@ class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
     ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1);
   }
 
-  Widget _buildLanguageList(List<AppLanguage> languages, Locale currentLocale, bool isDark) {
+  Widget _buildLanguageList(
+    List<AppLanguage> languages,
+    Locale currentLocale,
+    bool isDark,
+    bool reduceMotion,
+  ) {
     return ListView.separated(
       padding: EdgeInsets.only(left: 24.w, right: 24.w, bottom: 24.h),
       itemCount: languages.length,
@@ -234,7 +271,7 @@ class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
         final lang = languages[index];
         final isSelected = currentLocale.languageCode == lang.code;
 
-        return _LanguageTile(
+        final tile = _LanguageTile(
           lang: lang,
           isSelected: isSelected,
           isDark: isDark,
@@ -242,7 +279,16 @@ class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
             ref.read(localeProvider.notifier).setLocale(Locale(lang.code));
             unawaited(HapticFeedback.mediumImpact());
           },
-        ).animate().fadeIn(delay: (index * 20).ms, duration: 300.ms).slideX(begin: 0.05);
+        );
+
+        if (reduceMotion) {
+          return tile;
+        }
+
+        return tile
+            .animate()
+            .fadeIn(delay: (index * 20).ms, duration: 300.ms)
+            .slideX(begin: 0.05);
       },
     );
   }
@@ -250,41 +296,20 @@ class _LanguageSelectionPageState extends ConsumerState<LanguageSelectionPage> {
   Widget _buildContinueButton(AppLocalizations l10n) {
     return Padding(
       padding: EdgeInsets.all(24.w),
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
-        height: 56.h,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18.r),
-          gradient: const LinearGradient(
-            colors: [AppColors.primary, AppColors.primaryLight],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ElevatedButton(
+        child: FilledButton(
           onPressed: () async {
             await HapticFeedback.mediumImpact();
             await ref.read(onboardingProvider.notifier).completeOnboarding();
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18.r),
-            ),
-          ),
-          child: Text(
-            l10n.continueLabel,
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-              color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              l10n.continueLabel,
+              style: AppTextStyles.labelLarge(
+                context,
+              ).copyWith(color: Colors.white, fontWeight: FontWeight.w800),
             ),
           ),
         ),
@@ -308,64 +333,63 @@ class _LanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: '${lang.sub}, ${lang.name}',
       child: AnimatedContainer(
         duration: 300.ms,
-        height: 72.h,
+        constraints: const BoxConstraints(minHeight: 72),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.r),
-          color: isSelected 
+          color: isSelected
               ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1)
-              : (isDark ? AppColors.onDarkBackground.withValues(alpha: 0.03) : AppColors.onLightBackground.withValues(alpha: 0.03)),
+              : (isDark
+                    ? AppColors.onDarkBackground.withValues(alpha: 0.03)
+                    : AppColors.onLightBackground.withValues(alpha: 0.03)),
           border: Border.all(
-            color: isSelected 
+            color: isSelected
                 ? AppColors.primary.withValues(alpha: 0.5)
-                : (isDark ? AppColors.onDarkBackground.withValues(alpha: 0.08) : AppColors.onLightBackground.withValues(alpha: 0.05)),
-            width: isSelected ? 1.5.w : 1.w,
+                : colorScheme.outline.withValues(alpha: 0.5),
+            width: isSelected ? 1.5 : 1,
           ),
-          boxShadow: isSelected && !isDark ? [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              blurRadius: 10,
-              spreadRadius: 0,
-            )
-          ] : [],
+          boxShadow: isSelected && !isDark
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                  ),
+                ]
+              : const [],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20.r),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20.r),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               child: Row(
                 children: [
-                  // Flag with animation
                   Container(
                     width: 44.r,
                     height: 44.r,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isSelected ? AppColors.primary.withValues(alpha: 0.4) : (isDark ? AppColors.onDarkBackground.withValues(alpha: 0.12) : AppColors.onLightBackground.withValues(alpha: 0.12)),
-                        width: 1.5.w,
+                        color: isSelected
+                            ? AppColors.primary.withValues(alpha: 0.4)
+                            : colorScheme.outline.withValues(alpha: 0.4),
+                        width: 1.5,
                       ),
-                      boxShadow: isSelected ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                        )
-                      ] : [],
                     ),
                     child: ClipOval(
-                      child: Image.asset(
-                        lang.flag,
-                        fit: BoxFit.cover,
-                      ).animate(target: isSelected ? 1 : 0).shimmer(duration: 1.5.seconds, color: Colors.white.withValues(alpha: 0.24)),
+                      child: Image.asset(lang.flag, fit: BoxFit.cover),
                     ),
                   ),
                   SizedBox(width: 16.w),
-                  // Name and Subtitle
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,28 +397,29 @@ class _LanguageTile extends StatelessWidget {
                       children: [
                         Text(
                           lang.sub,
-                          style: TextStyle(
-                            color: isSelected 
-                                ? (isDark ? AppColors.onDarkBackground : AppColors.primary) 
-                                : (isDark ? AppColors.onDarkBackground.withValues(alpha: 0.9) : AppColors.onLightBackground),
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                            fontSize: 16.sp,
+                          style: AppTextStyles.titleMedium(context).copyWith(
+                            color: isSelected
+                                ? (isDark
+                                      ? AppColors.onDarkBackground
+                                      : AppColors.primary)
+                                : colorScheme.onSurface,
+                            fontWeight: isSelected
+                                ? FontWeight.w800
+                                : FontWeight.w600,
                           ),
                         ),
                         Text(
                           lang.name,
-                          style: TextStyle(
-                            color: isSelected 
-                                ? AppColors.primary.withValues(alpha: 0.7) 
-                                : (isDark ? AppColors.onDarkBackground.withValues(alpha: 0.4) : AppColors.onLightSurfaceVariant),
-                            fontSize: 12.sp,
+                          style: AppTextStyles.bodySmall(context).copyWith(
+                            color: isSelected
+                                ? AppColors.primary.withValues(alpha: 0.85)
+                                : colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  // Selection Indicator
                   if (isSelected)
                     Container(
                       padding: EdgeInsets.all(4.r),
@@ -407,7 +432,10 @@ class _LanguageTile extends StatelessWidget {
                         color: AppColors.onPrimary,
                         size: 14.r,
                       ),
-                    ).animate().scale(duration: 250.ms, curve: Curves.easeOutBack),
+                    ).animate().scale(
+                      duration: 250.ms,
+                      curve: Curves.easeOutBack,
+                    ),
                 ],
               ),
             ),

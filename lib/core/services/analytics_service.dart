@@ -37,13 +37,12 @@ class AnalyticsService {
     required String featureName,
     Map<String, Object>? parameters,
   }) async {
-    await _safeLog(() => _analytics.logEvent(
-      name: 'feature_used',
-      parameters: {
-        'feature_name': featureName,
-        ...?parameters,
-      },
-    ));
+    await _safeLog(
+      () => _analytics.logEvent(
+        name: 'feature_used',
+        parameters: {'feature_name': featureName, ...?parameters},
+      ),
+    );
   }
 
   /// Track when a user starts a potentially monetizable action
@@ -51,14 +50,16 @@ class AnalyticsService {
     required String action,
     required String targetPlan,
   }) async {
-    await _safeLog(() => _analytics.logEvent(
-      name: 'monetization_intent',
-      parameters: {
-        'action': action,
-        'target_plan': targetPlan,
-        'timestamp': DateTime.now().toIso8601String(),
-      },
-    ));
+    await _safeLog(
+      () => _analytics.logEvent(
+        name: 'monetization_intent',
+        parameters: {
+          'action': action,
+          'target_plan': targetPlan,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      ),
+    );
   }
 
   /// Track successful image optimization
@@ -71,27 +72,28 @@ class AnalyticsService {
     // ── NEW: Trigger Review Prompt after success ───────────────────────────
     unawaited(ReviewService().logSuccessAndCheckReview());
 
-    await _safeLog(() => _analytics.logEvent(
-      name: 'compression_success',
-      parameters: {
-        'type': type,
-        'original_size_kb': originalSize ~/ 1024,
-        'compressed_size_kb': compressedSize ~/ 1024,
-        'reduction_percent': ((1 - (compressedSize / originalSize)) * 100).toInt(),
-        'image_count': imageCount,
-      },
-    ));
+    await _safeLog(
+      () => _analytics.logEvent(
+        name: 'compression_success',
+        parameters: {
+          'type': type,
+          'original_size_kb': originalSize ~/ 1024,
+          'compressed_size_kb': compressedSize ~/ 1024,
+          'reduction_percent': ((1 - (compressedSize / originalSize)) * 100)
+              .toInt(),
+          'image_count': imageCount,
+        },
+      ),
+    );
   }
 
   /// Track errors for business logic (non-crashes)
   Future<void> logBusinessError(String errorType, String message) async {
-    await _safeLog(() => _analytics.logEvent(
-      name: 'business_error',
-      parameters: {
-        'error_type': errorType,
-        'message': message,
-      },
-    ));
+    await _safeLog(
+      () => _analytics.logEvent(
+        name: 'business_error',
+        parameters: {'error_type': errorType, 'message': message},
+      ),
+    );
   }
 }
-

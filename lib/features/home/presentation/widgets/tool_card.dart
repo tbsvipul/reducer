@@ -44,15 +44,9 @@ class ToolCard extends StatelessWidget {
                 child: Icon(icon, color: color, size: AppDimensions.iconLg.r),
               ),
               SizedBox(height: AppDimensions.lg.h),
-              Text(
-                title,
-                style: AppTextStyles.titleMedium(context),
-              ),
+              Text(title, style: AppTextStyles.titleMedium(context)),
               SizedBox(height: AppDimensions.xs2.h),
-              Text(
-                subtitle,
-                style: AppTextStyles.bodySmall(context),
-              ),
+              Text(subtitle, style: AppTextStyles.bodySmall(context)),
             ],
           ),
         ),
@@ -60,4 +54,3 @@ class ToolCard extends StatelessWidget {
     );
   }
 }
-

@@ -29,10 +29,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   Future<void> _resetPassword() async {
     if (_formKey.currentState?.validate() ?? false) {
-      await ref.read(authControllerProvider.notifier).sendPasswordResetEmail(
-            _emailController.text.trim(),
-          );
-      
+      await ref
+          .read(authControllerProvider.notifier)
+          .sendPasswordResetEmail(_emailController.text.trim());
+
       if (mounted) {
         final state = ref.read(authControllerProvider);
         if (state.hasError) {
@@ -55,12 +55,17 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -72,7 +77,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.pagePadding, vertical: AppDimensions.lg),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.pagePadding,
+            vertical: AppDimensions.lg,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -80,13 +88,17 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               children: [
                 Text(
                   'Forgot Password?',
-                  style: AppTextStyles.headlineMedium(context).copyWith(fontWeight: FontWeight.bold),
+                  style: AppTextStyles.headlineMedium(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: AppDimensions.sm),
                 Text(
                   'Enter your email address and we will send you a reset link.',
                   style: AppTextStyles.bodyMedium(context).copyWith(
-                    color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                    color: isDark
+                        ? AppColors.onDarkSurfaceVariant
+                        : AppColors.onLightSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: AppDimensions.xl3),
@@ -94,7 +106,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   controller: _emailController,
                   label: 'Email Address',
                   hint: 'enter your email',
-                  prefix: Icon(Icons.email_outlined, size: AppDimensions.iconMd.r),
+                  prefix: Icon(
+                    Icons.email_outlined,
+                    size: AppDimensions.iconMd.r,
+                  ),
                   keyboardType: TextInputType.emailAddress,
                   validator: MultiValidator([
                     RequiredValidator(errorText: 'Email is required'),
@@ -110,12 +125,22 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.onPrimary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMd,
+                        ),
+                      ),
                       elevation: 0,
                     ),
                     child: authState.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Send Reset Link', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        : const Text(
+                            'Send Reset Link',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],

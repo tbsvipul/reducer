@@ -27,4 +27,3 @@ class DesignTokens {
   static double get radiusMedium => AppDimensions.radiusLg;
   static double get radiusLarge => AppDimensions.radiusXl2;
 }
-

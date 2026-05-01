@@ -60,9 +60,7 @@ class AppDialog extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -86,7 +84,9 @@ class AppDialog extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: AppTextStyles.titleLarge(context).copyWith(
-                color: isDark ? AppColors.onDarkSurface : AppColors.onLightSurface,
+                color: isDark
+                    ? AppColors.onDarkSurface
+                    : AppColors.onLightSurface,
               ),
             ),
             SizedBox(height: AppDimensions.md.h),
@@ -94,17 +94,21 @@ class AppDialog extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium(context).copyWith(
-                color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                color: isDark
+                    ? AppColors.onDarkSurfaceVariant
+                    : AppColors.onLightSurfaceVariant,
               ),
             ),
             SizedBox(height: AppDimensions.xl2.h),
             if (customActions != null)
               Column(
                 children: customActions!
-                    .map((action) => Padding(
-                          padding: EdgeInsets.only(bottom: AppDimensions.sm.h),
-                          child: SizedBox(width: double.infinity, child: action),
-                        ))
+                    .map(
+                      (action) => Padding(
+                        padding: EdgeInsets.only(bottom: AppDimensions.sm.h),
+                        child: SizedBox(width: double.infinity, child: action),
+                      ),
+                    )
                     .toList(),
               )
             else
@@ -162,7 +166,7 @@ class AppDialog extends StatelessWidget {
         color = AppColors.primary;
         break;
       case AppDialogType.info:
-      iconData = Icons.info_outline;
+        iconData = Icons.info_outline;
         color = AppColors.secondary;
         break;
     }

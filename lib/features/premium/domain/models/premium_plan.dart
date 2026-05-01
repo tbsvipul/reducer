@@ -3,23 +3,20 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:reducer/core/config/app_config.dart';
 
 /// Model representing a specific subscription plan (offer) fetched from the store.
-/// 
-/// This implementation is 100% dynamic, deriving all text and pricing from 
+///
+/// This implementation is 100% dynamic, deriving all text and pricing from
 /// the ProductDetails and SubscriptionOfferDetailsWrapper objects provided by Google Play.
 ///
 /// Each PremiumPlan maps to one base plan (offer) within a parent subscription product.
 class PremiumPlan {
   final ProductDetails product;
-  
+
   /// The specific subscription offer from Google Play.
   /// Each offer corresponds to a base plan (monthly, yearly, test, etc.)
   /// and contains its own pricing phases with correct prices.
   final SubscriptionOfferDetailsWrapper? offer;
 
-  const PremiumPlan({
-    required this.product,
-    this.offer,
-  });
+  const PremiumPlan({required this.product, this.offer});
 
   /// Map of ISO 8601 durations to human-readable period names.
   static const Map<String, String> _periodMap = {
@@ -70,7 +67,7 @@ class PremiumPlan {
     if (isYearly) return 'Yearly';
     if (isMonthly) return 'Monthly';
     if (isTestPlan) return 'Trial';
-    
+
     final bp = _billingPeriod.toUpperCase();
     return _periodMap[bp] ?? 'Premium';
   }
@@ -140,7 +137,8 @@ class PremiumPlan {
     if (offer != null) {
       return offer!.basePlanId == AppConfig.yearlyBasePlanId;
     }
-    return _billingPeriod.toUpperCase() == 'P1Y' || product.id.contains('yearly');
+    return _billingPeriod.toUpperCase() == 'P1Y' ||
+        product.id.contains('yearly');
   }
 
   /// Strictly identifies if this is the monthly plan based on the Base Plan ID in Console.
@@ -148,7 +146,8 @@ class PremiumPlan {
     if (offer != null) {
       return offer!.basePlanId == AppConfig.monthlyBasePlanId;
     }
-    return _billingPeriod.toUpperCase() == 'P1M' || product.id.contains('monthly');
+    return _billingPeriod.toUpperCase() == 'P1M' ||
+        product.id.contains('monthly');
   }
 
   /// Strictly identifies if this is the test/trial plan.
@@ -186,6 +185,6 @@ class PremiumPlan {
   }
 
   @override
-  String toString() => 'PremiumPlan(${product.id}, ${offer?.basePlanId ?? "no-offer"}, $price)';
+  String toString() =>
+      'PremiumPlan(${product.id}, ${offer?.basePlanId ?? "no-offer"}, $price)';
 }
-

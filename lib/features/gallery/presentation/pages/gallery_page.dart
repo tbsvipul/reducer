@@ -49,7 +49,14 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
   Future<void> _removeItem(HistoryItem item, AppLocalizations l10n) async {
     await ref.read(historyControllerProvider.notifier).removeItem(item.id);
     if (!mounted) return;
-    AppSnackbar.show(context, l10n.itemRemoved);
+    AppSnackbar.show(
+      context,
+      l10n.itemRemoved,
+      actionLabel: l10n.retry,
+      onAction: () {
+        ref.read(historyControllerProvider.notifier).addItem(item);
+      },
+    );
   }
 
   void _clearHistory(AppLocalizations l10n) {
@@ -80,10 +87,11 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
           const BannerAdWidget(),
           Expanded(
             child: historyAsync.when(
-              loading: () => const AppLoader(message: 'Loading history...'),
+              loading: () => AppLoader(message: l10n.loadingImages),
               error: (error, stack) => AppErrorWidget(
-                message: 'Error loading history: $error',
-                onRetry: () => ref.read(historyControllerProvider.notifier).loadHistory(),
+                message: l10n.historyLoadError,
+                onRetry: () =>
+                    ref.read(historyControllerProvider.notifier).loadHistory(),
               ),
               data: (history) {
                 if (history.items.isEmpty) {
@@ -117,7 +125,11 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
               mini: true,
               backgroundColor: AppColors.error,
               onPressed: () => _clearHistory(l10n),
-              child: Icon(Iconsax.trash, color: Colors.white, size: AppDimensions.iconSm.r),
+              child: Icon(
+                Iconsax.trash,
+                color: Colors.white,
+                size: AppDimensions.iconSm.r,
+              ),
             )
           : null,
     );
@@ -147,11 +159,12 @@ class _HistoryItemWrapper extends StatelessWidget {
       key: Key(item.id),
       direction: DismissDirection.endToStart,
       background: _buildDismissBackground(),
+      confirmDismiss: (_) async => true,
       onDismissed: (_) => onDismiss(),
-      child: HistoryCard(item: item, appDocDir: appDocDir)
-          .animate()
-          .fadeIn(delay: Duration(milliseconds: 50 * index))
-          .slideX(),
+      child: HistoryCard(
+        item: item,
+        appDocDir: appDocDir,
+      ).animate().fadeIn(delay: Duration(milliseconds: 50 * index)).slideX(),
     );
   }
 
@@ -164,8 +177,11 @@ class _HistoryItemWrapper extends StatelessWidget {
         color: AppColors.error,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg.r),
       ),
-      child: Icon(Iconsax.trash, color: Colors.white, size: AppDimensions.iconMd.r),
+      child: Icon(
+        Iconsax.trash,
+        color: Colors.white,
+        size: AppDimensions.iconMd.r,
+      ),
     );
   }
 }
-

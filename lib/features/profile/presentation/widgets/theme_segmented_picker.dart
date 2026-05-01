@@ -34,7 +34,8 @@ class ThemeSegmentedPicker extends ConsumerWidget {
           ),
         ],
         selected: {currentTheme},
-        onSelectionChanged: (set) => ref.read(themeModeProvider.notifier).setThemeMode(set.first),
+        onSelectionChanged: (set) =>
+            ref.read(themeModeProvider.notifier).setThemeMode(set.first),
         style: SegmentedButton.styleFrom(
           backgroundColor: Colors.transparent,
           selectedBackgroundColor: AppColors.primary,

@@ -65,20 +65,20 @@ class ConsentManager {
       params,
       () async {
         try {
-          final formAvailable =
-              await ConsentInformation.instance.isConsentFormAvailable();
+          final formAvailable = await ConsentInformation.instance
+              .isConsentFormAvailable();
 
           if (formAvailable) {
             // Fix: Gracefully handles "no form needed" and dismissal errors.
-            await ConsentForm.loadAndShowConsentFormIfRequired(
-              (FormError? formError) {
-                if (formError != null) {
-                  debugPrint(
-                    '[ConsentManager] Consent form dismissed with error: ${formError.message}',
-                  );
-                }
-              },
-            );
+            await ConsentForm.loadAndShowConsentFormIfRequired((
+              FormError? formError,
+            ) {
+              if (formError != null) {
+                debugPrint(
+                  '[ConsentManager] Consent form dismissed with error: ${formError.message}',
+                );
+              }
+            });
           } else {
             debugPrint(
               '[ConsentManager] No consent form available for this region/user.',
@@ -95,14 +95,24 @@ class ConsentManager {
       (FormError error) async {
         // Fix: App keeps running even when consent info update fails.
         if (error.errorCode == 3) {
-          debugPrint('------------------------------------------------------------');
-          debugPrint('[ConsentManager] CRITICAL: AdMob Publisher Misconfiguration!');
+          debugPrint(
+            '------------------------------------------------------------',
+          );
+          debugPrint(
+            '[ConsentManager] CRITICAL: AdMob Publisher Misconfiguration!',
+          );
           debugPrint('[ConsentManager] ErrorCode 3 usually means:');
-          debugPrint('1. You have NOT created a GDPR message for this app in AdMob.');
+          debugPrint(
+            '1. You have NOT created a GDPR message for this app in AdMob.',
+          );
           debugPrint('2. The message is not "Published".');
-          debugPrint('3. The App ID in AndroidManifest does not match the dashboard app.');
+          debugPrint(
+            '3. The App ID in AndroidManifest does not match the dashboard app.',
+          );
           debugPrint('Check: https://apps.admob.com/v2/privacymessaging');
-          debugPrint('------------------------------------------------------------');
+          debugPrint(
+            '------------------------------------------------------------',
+          );
         } else {
           debugPrint(
             '[ConsentManager] Consent info update failed (${error.errorCode}): ${error.message}',
@@ -114,11 +124,13 @@ class ConsentManager {
       },
     );
 
-    // Fix: Prevent splash deadlock on rare vendor/UMP hangs.
+    // Reduced timeout from 12s to 6s for better UX on slow networks.
     await completer.future.timeout(
-      const Duration(seconds: 12),
+      const Duration(seconds: 6),
       onTimeout: () {
-        debugPrint('[ConsentManager] Consent flow timeout. Continuing safely.');
+        debugPrint(
+          '[ConsentManager] Consent flow timeout (6s). Continuing safely.',
+        );
       },
     );
   }
@@ -167,4 +179,3 @@ class ConsentManager {
     _canRequestAdsCache = false;
   }
 }
-

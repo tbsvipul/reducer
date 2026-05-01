@@ -7,7 +7,7 @@ part of 'bulk_image_controller.dart';
 // **************************************************************************
 
 String _$bulkImageControllerHash() =>
-    r'dcb2d048ba3bcc36ef425fc381dddfac65c7aed7';
+    r'd832dd4c570d6897ca4439681595aed60ec58a0e';
 
 /// See also [BulkImageController].
 @ProviderFor(BulkImageController)

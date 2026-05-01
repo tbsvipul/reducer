@@ -31,21 +31,23 @@ class ReviewController {
     if (!await _inAppReview.isAvailable()) return false;
 
     final lastMilestone = prefs.getInt(_lastReviewMilestoneKey) ?? 0;
-    
+
     // Milestones to trigger review
     final milestones = [5, 20, 50, 100];
-    
+
     for (final milestone in milestones) {
       if (count >= milestone && lastMilestone < milestone) {
         return true;
       }
     }
-    
+
     return false;
   }
 
   Future<void> _requestReview(int milestone, SharedPreferences prefs) async {
-    debugPrint('[ReviewController] Triggering In-App Review for milestone: $milestone');
+    debugPrint(
+      '[ReviewController] Triggering In-App Review for milestone: $milestone',
+    );
     try {
       await _inAppReview.requestReview();
       await prefs.setInt(_lastReviewMilestoneKey, milestone);
@@ -59,4 +61,3 @@ class ReviewController {
     await _inAppReview.openStoreListing();
   }
 }
-

@@ -29,21 +29,32 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     final Widget card = Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: gradient == null ? (color ?? (isDark ? AppColors.darkSurface : AppColors.lightSurface)) : null,
+        color: gradient == null
+            ? (color ??
+                  (isDark ? AppColors.darkSurface : AppColors.lightSurface))
+            : null,
         gradient: gradient,
-        borderRadius: BorderRadius.circular(borderRadius ?? AppSpacing.radiusLg),
-        boxShadow: boxShadow ?? (isDark ? AppColors.cardShadowDark : AppColors.cardShadowLight),
-        border: border ?? Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-          width: 1,
+        borderRadius: BorderRadius.circular(
+          borderRadius ?? AppSpacing.radiusLg,
         ),
+        boxShadow:
+            boxShadow ??
+            (isDark ? AppColors.cardShadowDark : AppColors.cardShadowLight),
+        border:
+            border ??
+            Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              width: 1,
+            ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius ?? AppSpacing.radiusLg),
+        borderRadius: BorderRadius.circular(
+          borderRadius ?? AppSpacing.radiusLg,
+        ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -60,4 +71,3 @@ class AppCard extends StatelessWidget {
     return card;
   }
 }
-

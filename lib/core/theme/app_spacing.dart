@@ -42,5 +42,3 @@ class AppSpacing {
   static const double iconXl3 = 64.0;
   static const double iconXl4 = 80.0;
 }
-
-

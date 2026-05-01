@@ -71,10 +71,15 @@ class _ProfileSliverHeader extends ConsumerWidget {
       expandedHeight: 280.h,
       pinned: true,
       stretch: true,
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
-        stretchModes: const [StretchMode.zoomBackground, StretchMode.blurBackground],
+        stretchModes: const [
+          StretchMode.zoomBackground,
+          StretchMode.blurBackground,
+        ],
         background: Stack(
           alignment: Alignment.center,
           children: [
@@ -127,7 +132,9 @@ class _ProfileSliverHeader extends ConsumerWidget {
         Text(
           user.email,
           style: AppTextStyles.bodyMedium(context).copyWith(
-            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            color: isDark
+                ? AppColors.onDarkSurfaceVariant
+                : AppColors.onLightSurfaceVariant,
             fontWeight: FontWeight.w500,
             fontSize: 14.sp,
           ),
@@ -168,7 +175,9 @@ class _AvatarSection extends ConsumerWidget {
               height: 108.r,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+                color: isDark
+                    ? AppColors.darkSurfaceVariant
+                    : AppColors.lightSurfaceVariant,
               ),
               child: Center(
                 child: Text(
@@ -188,25 +197,13 @@ class _AvatarSection extends ConsumerWidget {
         Positioned(
           bottom: 0,
           right: 0,
-          child: GestureDetector(
-            onTap: isLoading ? null : () => _pickImage(context, ref),
-            child: Container(
-              padding: EdgeInsets.all(AppDimensions.sm.r),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: AppDimensions.sm.r,
-                  )
-                ],
-              ),
-              child: Icon(
-                isLoading ? Icons.sync : Iconsax.camera,
-                color: AppColors.onPrimary,
-                size: AppDimensions.iconSm.r,
-              ),
+          child: IconButton.filled(
+            tooltip: AppLocalizations.of(context)!.camera,
+            onPressed: isLoading ? null : () => _pickImage(context, ref),
+            icon: Icon(
+              isLoading ? Icons.sync : Iconsax.camera,
+              color: AppColors.onPrimary,
+              size: AppDimensions.iconSm.r,
             ),
           ),
         ),
@@ -228,28 +225,40 @@ class _DisplayNameSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      onTap: () => _showEditNameDialog(context, ref),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            user.displayName ?? 'No Name',
-            style: AppTextStyles.headlineSmall(context).copyWith(
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-              fontSize: 24.sp,
+    return Semantics(
+      button: true,
+      label: user.displayName ?? 'No Name',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showEditNameDialog(context, ref),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  user.displayName ?? 'No Name',
+                  style: AppTextStyles.headlineSmall(context).copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                    fontSize: 24.sp,
+                  ),
+                ),
+                SizedBox(width: AppDimensions.sm.w),
+                Icon(
+                  Iconsax.edit_2,
+                  size: AppDimensions.iconSm.r,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.onDarkSurfaceVariant
+                      : AppColors.onLightSurfaceVariant,
+                ),
+              ],
             ),
           ),
-          SizedBox(width: AppDimensions.sm.w),
-          Icon(
-            Iconsax.edit_2,
-            size: AppDimensions.iconSm.r,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.onDarkSurfaceVariant
-                : AppColors.onLightSurfaceVariant,
-          ),
-        ],
+        ),
       ),
     ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0);
   }
@@ -316,7 +325,9 @@ class _SubscriptionStatusCard extends StatelessWidget {
                 end: Alignment.bottomRight,
               )
             : null,
-        color: !isPro ? (isDark ? AppColors.darkSurface : AppColors.lightSurface) : null,
+        color: !isPro
+            ? (isDark ? AppColors.darkSurface : AppColors.lightSurface)
+            : null,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXl2.r),
         border: Border.all(
           color: isPro
@@ -349,13 +360,20 @@ class _SubscriptionStatusCard extends StatelessWidget {
         isPro ? Iconsax.crown : Iconsax.user,
         color: isPro
             ? AppColors.premium
-            : (isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+            : (isDark
+                  ? AppColors.onDarkSurfaceVariant
+                  : AppColors.onLightSurfaceVariant),
         size: AppDimensions.iconXl.r,
       ),
     );
   }
 
-  Widget _buildTextContent(BuildContext context, bool isPro, bool isDark, AppLocalizations l10n) {
+  Widget _buildTextContent(
+    BuildContext context,
+    bool isPro,
+    bool isDark,
+    AppLocalizations l10n,
+  ) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,14 +382,20 @@ class _SubscriptionStatusCard extends StatelessWidget {
             isPro ? l10n.proActive : l10n.freeMember,
             style: AppTextStyles.titleLarge(context).copyWith(
               fontWeight: FontWeight.w900,
-              color: isPro ? AppColors.onPremium : (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
+              color: isPro
+                  ? AppColors.onPremium
+                  : (isDark
+                        ? AppColors.onDarkSurface
+                        : AppColors.onLightSurface),
               fontSize: 18.sp,
             ),
           ),
           Text(
             isPro ? l10n.fullAccessUnlocked : l10n.basicToolsEnabled,
             style: AppTextStyles.bodyMedium(context).copyWith(
-              color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+              color: isDark
+                  ? AppColors.onDarkSurfaceVariant
+                  : AppColors.onLightSurfaceVariant,
               fontSize: 14.sp,
             ),
           ),
@@ -380,22 +404,35 @@ class _SubscriptionStatusCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, bool isPro, AppLocalizations l10n) {
+  Widget _buildActionButton(
+    BuildContext context,
+    bool isPro,
+    AppLocalizations l10n,
+  ) {
     if (!isPro) {
       return ElevatedButton(
         onPressed: () => context.push('/premium'),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r)),
-          padding: EdgeInsets.symmetric(horizontal: AppDimensions.lg.w, vertical: AppDimensions.sm.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd.r),
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppDimensions.lg.w,
+            vertical: AppDimensions.sm.h,
+          ),
         ),
         child: Text(l10n.goPro, style: TextStyle(fontSize: 14.sp)),
       );
     }
     return IconButton(
       onPressed: () => context.push('/premium'),
-      icon: Icon(Iconsax.arrow_right_3, color: AppColors.onPremium.withValues(alpha: 0.24), size: AppDimensions.iconLg),
+      icon: Icon(
+        Iconsax.arrow_right_3,
+        color: AppColors.onPremium.withValues(alpha: 0.24),
+        size: AppDimensions.iconLg,
+      ),
     );
   }
 }
@@ -410,14 +447,19 @@ class _PreferencesSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionLabel(label: AppLocalizations.of(context)!.preferences, isDark: isDark),
+        _SectionLabel(
+          label: AppLocalizations.of(context)!.preferences,
+          isDark: isDark,
+        ),
         SizedBox(height: AppDimensions.lg.h),
         Container(
           padding: EdgeInsets.all(AppDimensions.md.r),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(AppDimensions.radiusXl2.r),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            ),
           ),
           child: const ThemeSegmentedPicker(),
         ),
@@ -444,7 +486,9 @@ class _AccountActionsSection extends ConsumerWidget {
             label: 'Verify Email',
             color: AppColors.warning,
             isDark: isDark,
-            onTap: () => ref.read(authControllerProvider.notifier).sendEmailVerification(),
+            onTap: () => ref
+                .read(authControllerProvider.notifier)
+                .sendEmailVerification(),
           ),
           SizedBox(height: AppDimensions.lg.h),
         ],
@@ -467,7 +511,9 @@ class _AccountActionsSection extends ConsumerWidget {
         Text(
           l10n.appVersionLabel("1.5.0"),
           style: AppTextStyles.labelSmall(context).copyWith(
-            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            color: isDark
+                ? AppColors.onDarkSurfaceVariant
+                : AppColors.onLightSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -487,7 +533,11 @@ class _AccountActionsSection extends ConsumerWidget {
     );
   }
 
-  void _deleteAccount(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  void _deleteAccount(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) {
     AppDialog.show(
       context,
       title: l10n.deleteAccount,
@@ -495,7 +545,8 @@ class _AccountActionsSection extends ConsumerWidget {
       confirmLabel: l10n.delete,
       cancelLabel: l10n.cancel,
       type: AppDialogType.error,
-      onConfirm: () => ref.read(authControllerProvider.notifier).deleteAccount(),
+      onConfirm: () =>
+          ref.read(authControllerProvider.notifier).deleteAccount(),
     );
   }
 }
@@ -512,11 +563,10 @@ class _SectionLabel extends StatelessWidget {
       padding: EdgeInsets.only(left: AppDimensions.sm.w),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11.sp,
+        style: AppTextStyles.labelMedium(context).copyWith(
           fontWeight: FontWeight.w900,
-          letterSpacing: 1.5.w,
-          color: isDark ? Colors.white.withValues(alpha: 0.24) : Colors.black.withValues(alpha: 0.26),
+          letterSpacing: 1.2,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );

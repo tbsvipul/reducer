@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reducer/core/theme/app_dimensions.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
 import 'package:reducer/features/premium/presentation/widgets/package_card.dart';
-import 'package:reducer/core/theme/app_dimensions.dart';
 import 'package:reducer/l10n/app_localizations.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HorizontalPackageSelector extends ConsumerWidget {
   const HorizontalPackageSelector({super.key});
@@ -14,6 +14,7 @@ class HorizontalPackageSelector extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(premiumControllerProvider);
     final notifier = ref.read(premiumControllerProvider.notifier);
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (state.availablePackages.isEmpty) return const SizedBox.shrink();
 
@@ -26,15 +27,16 @@ class HorizontalPackageSelector extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppDimensions.sm),
               child: Text(
                 l10n.selectPlan,
-                style: TextStyle(
-                  fontSize: 10.sp,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black38,
-                  letterSpacing: 1.0.w,
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 1,
                 ),
               ),
             ),
-            const Expanded(child: Divider(height: 1, color: Colors.black12)),
+            Expanded(
+              child: Divider(height: 1, color: colorScheme.outlineVariant),
+            ),
           ],
         ),
         SizedBox(height: 16.h),
@@ -43,7 +45,7 @@ class HorizontalPackageSelector extends ConsumerWidget {
           children: state.availablePackages.map((package) {
             // Show Popular badge on Yearly plan
             final isPopular = package.isYearly;
-            
+
             return Expanded(
               child: Stack(
                 clipBehavior: Clip.none,
@@ -58,18 +60,21 @@ class HorizontalPackageSelector extends ConsumerWidget {
                     Positioned(
                       top: -12.h,
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 4.h,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFACC15),
+                          color: colorScheme.tertiaryContainer,
                           borderRadius: BorderRadius.circular(20.r),
                         ),
                         child: Text(
                           l10n.popular,
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 9.sp,
-                            fontWeight: FontWeight.w900,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: colorScheme.onTertiaryContainer,
+                                fontWeight: FontWeight.w900,
+                              ),
                         ),
                       ),
                     ),
@@ -81,6 +86,4 @@ class HorizontalPackageSelector extends ConsumerWidget {
       ],
     );
   }
-
 }
-

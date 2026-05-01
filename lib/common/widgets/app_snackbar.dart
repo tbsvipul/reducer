@@ -9,23 +9,32 @@ class AppSnackbar {
     BuildContext context,
     String message, {
     AppSnackbarType type = AppSnackbarType.info,
+    String? actionLabel,
+    VoidCallback? onAction,
   }) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    
+
     // Clear existing snackbars
     scaffoldMessenger.removeCurrentSnackBar();
-    
+
     scaffoldMessenger.showSnackBar(
       SnackBar(
         content: Text(
           message,
-          style: AppTextStyles.bodyMedium(context).copyWith(color: Colors.white),
+          style: AppTextStyles.bodyMedium(
+            context,
+          ).copyWith(color: Colors.white),
         ),
         backgroundColor: _getBackgroundColor(type),
+        action: actionLabel == null || onAction == null
+            ? null
+            : SnackBarAction(
+                label: actionLabel,
+                onPressed: onAction,
+                textColor: Colors.white,
+              ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -39,7 +48,7 @@ class AppSnackbar {
       case AppSnackbarType.warning:
         return AppColors.warning;
       case AppSnackbarType.info:
-      return AppColors.primary;
+        return AppColors.primary;
     }
   }
 }

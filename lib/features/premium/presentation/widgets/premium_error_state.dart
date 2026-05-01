@@ -68,7 +68,9 @@ class PremiumErrorState extends ConsumerWidget {
                   AppButton(
                     label: AppLocalizations.of(context)!.retry,
                     icon: Icons.refresh,
-                    onPressed: () => ref.read(premiumControllerProvider.notifier).fetchOffersAndCheckStatus(),
+                    onPressed: () => ref
+                        .read(premiumControllerProvider.notifier)
+                        .fetchOffersAndCheckStatus(),
                   ),
                 ],
               ),
@@ -79,4 +81,3 @@ class PremiumErrorState extends ConsumerWidget {
     );
   }
 }
-

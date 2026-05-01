@@ -28,4 +28,3 @@ class LocaleService {
     await prefs.setBool('is_first_time', isFirstTime);
   }
 }
-

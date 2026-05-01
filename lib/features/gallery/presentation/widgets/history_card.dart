@@ -20,11 +20,7 @@ class HistoryCard extends StatelessWidget {
   final HistoryItem item;
   final String? appDocDir;
 
-  const HistoryCard({
-    super.key,
-    required this.item,
-    required this.appDocDir,
-  });
+  const HistoryCard({super.key, required this.item, required this.appDocDir});
 
   @override
   Widget build(BuildContext context) {
@@ -53,28 +49,42 @@ class HistoryCard extends StatelessWidget {
                       ? Container(
                           width: 72.r,
                           height: 72.r,
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          child: Center(child: CircularProgressIndicator(strokeWidth: 2.r)),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2.r),
+                          ),
                         )
-                      : Builder(builder: (context) {
-                          final thumbPath = item.getAbsoluteThumbnailPath(appDocDir!);
-                          final file = File(thumbPath);
-                          return file.existsSync()
-                              ? Image.file(
-                                  file,
+                      : Builder(
+                          builder: (context) {
+                            final thumbPath = item.getAbsoluteThumbnailPath(
+                              appDocDir!,
+                            );
+                            return Image.file(
+                              File(thumbPath),
+                              width: 72.r,
+                              height: 72.r,
+                              fit: BoxFit.cover,
+                              cacheWidth: 144,
+                              cacheHeight: 144,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
                                   width: 72.r,
                                   height: 72.r,
-                                  fit: BoxFit.cover,
-                                  cacheWidth: 144, // 2x for retina displays
-                                  cacheHeight: 144,
-                                )
-                              : Container(
-                                  width: 72.r,
-                                  height: 72.r,
-                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                  child: Icon(Iconsax.image, color: Colors.grey, size: 24.r),
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
+                                  child: Icon(
+                                    Iconsax.image,
+                                    color: Colors.grey,
+                                    size: 24.r,
+                                  ),
                                 );
-                        }),
+                              },
+                            );
+                          },
+                        ),
                 ),
                 SizedBox(width: AppDimensions.lg.w),
                 // Details
@@ -86,19 +96,32 @@ class HistoryCard extends StatelessWidget {
                         children: [
                           if (item.isBulk) ...[
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6.w,
+                                vertical: 2.h,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.secondaryContainer,
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusXs),
+                                borderRadius: BorderRadius.circular(
+                                  AppDimensions.radiusXs,
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Iconsax.grid_5, size: 10.r, color: AppColors.secondaryDark),
+                                  Icon(
+                                    Iconsax.grid_5,
+                                    size: 10.r,
+                                    color: AppColors.secondaryDark,
+                                  ),
                                   SizedBox(width: 4.w),
                                   Text(
-                                    AppLocalizations.of(context)!.bulkCountLabel(item.itemCount),
-                                    style: AppTextStyles.badgeLabel(context).copyWith(color: AppColors.secondaryDark),
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.bulkCountLabel(item.itemCount),
+                                    style: AppTextStyles.badgeLabel(
+                                      context,
+                                    ).copyWith(color: AppColors.secondaryDark),
                                   ),
                                 ],
                               ),
@@ -106,14 +129,25 @@ class HistoryCard extends StatelessWidget {
                             SizedBox(width: AppDimensions.sm.w),
                           ],
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.primaryContainer,
-                              borderRadius: BorderRadius.circular(AppDimensions.radiusXs.r),
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.radiusXs.r,
+                              ),
                             ),
                             child: Text(
-                              item.settings.format.toString().split('.').last.toUpperCase(),
-                              style: AppTextStyles.badgeLabel(context).copyWith(color: AppColors.primaryDark),
+                              item.settings.format
+                                  .toString()
+                                  .split('.')
+                                  .last
+                                  .toUpperCase(),
+                              style: AppTextStyles.badgeLabel(
+                                context,
+                              ).copyWith(color: AppColors.primaryDark),
                             ),
                           ),
                           const Spacer(),
@@ -132,11 +166,17 @@ class HistoryCard extends StatelessWidget {
                         SizedBox(height: AppDimensions.xs.h),
                         Row(
                           children: [
-                            Icon(Iconsax.arrow_down, size: 12.r, color: AppColors.success),
+                            Icon(
+                              Iconsax.arrow_down,
+                              size: 12.r,
+                              color: AppColors.success,
+                            ),
                             SizedBox(width: 4.w),
                             Text(
                               '${item.compressionPercent.toStringAsFixed(1)}% ${AppLocalizations.of(context)!.smaller}',
-                              style: AppTextStyles.labelSmall(context).copyWith(color: AppColors.success),
+                              style: AppTextStyles.labelSmall(
+                                context,
+                              ).copyWith(color: AppColors.success),
                             ),
                           ],
                         ),
@@ -155,6 +195,9 @@ class HistoryCard extends StatelessWidget {
   }
 
   void _showActionSheet(BuildContext context) {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -174,10 +217,7 @@ class HistoryCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),
-            Text(
-              AppLocalizations.of(context)!.imageActions,
-              style: AppTextStyles.titleMedium(context),
-            ),
+            Text(l10n.imageActions, style: AppTextStyles.titleMedium(context)),
             SizedBox(height: 24.h),
             ListTile(
               leading: Container(
@@ -186,29 +226,36 @@ class HistoryCard extends StatelessWidget {
                   color: AppColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Iconsax.save_2, color: AppColors.primary, size: 24.r),
+                child: Icon(
+                  Iconsax.save_2,
+                  color: AppColors.primary,
+                  size: 24.r,
+                ),
               ),
-              title: Text(AppLocalizations.of(context)!.saveToGallery),
+              title: Text(l10n.saveToGallery),
               onTap: () async {
                 Navigator.pop(context);
-                final path = item.getAbsoluteProcessedPaths(appDocDir ?? '').firstOrNull;
-                if (path != null && File(path).existsSync()) {
-                  final ok = await PermissionService.instance.ensurePhotosPermission(context);
+                final path = item
+                    .getAbsoluteProcessedPaths(appDocDir ?? '')
+                    .firstOrNull;
+                if (path != null && await File(path).exists()) {
+                  if (!context.mounted) return;
+                  final ok = await PermissionService.instance
+                      .ensurePhotosPermission(context);
+                  if (!context.mounted) return;
                   if (ok) {
                     await Gal.putImage(path, album: 'Reducer');
-                    if (context.mounted) {
-                      AppSnackbar.show(
-                        context,
-                        AppLocalizations.of(context)!.savedToGallerySuccess,
-                        type: AppSnackbarType.success,
-                      );
-                    }
+                    _showSnackBar(
+                      messenger,
+                      l10n.savedToGallerySuccess,
+                      AppSnackbarType.success,
+                    );
                   }
                 } else {
-                  AppSnackbar.show(
-                    context,
-                    AppLocalizations.of(context)!.processedFileNotFound,
-                    type: AppSnackbarType.error,
+                  _showSnackBar(
+                    messenger,
+                    l10n.processedFileNotFound,
+                    AppSnackbarType.error,
                   );
                 }
               },
@@ -220,21 +267,28 @@ class HistoryCard extends StatelessWidget {
                   color: AppColors.secondary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Iconsax.share, color: AppColors.secondary, size: 24.r),
+                child: Icon(
+                  Iconsax.share,
+                  color: AppColors.secondary,
+                  size: 24.r,
+                ),
               ),
-              title: Text(AppLocalizations.of(context)!.shareImage),
+              title: Text(l10n.shareImage),
               onTap: () async {
                 Navigator.pop(context);
-                final path = item.getAbsoluteProcessedPaths(appDocDir ?? '').firstOrNull;
-                if (path != null && File(path).existsSync()) {
-                  await SharePlus.instance.share(ShareParams(
-                    files: [XFile(path)],
-                  ));
+                final path = item
+                    .getAbsoluteProcessedPaths(appDocDir ?? '')
+                    .firstOrNull;
+                if (path != null && await File(path).exists()) {
+                  if (!context.mounted) return;
+                  await SharePlus.instance.share(
+                    ShareParams(files: [XFile(path)]),
+                  );
                 } else {
-                  AppSnackbar.show(
-                    context,
-                    AppLocalizations.of(context)!.processedFileNotFound,
-                    type: AppSnackbarType.error,
+                  _showSnackBar(
+                    messenger,
+                    l10n.processedFileNotFound,
+                    AppSnackbarType.error,
                   );
                 }
               },
@@ -244,5 +298,25 @@ class HistoryCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showSnackBar(
+    ScaffoldMessengerState messenger,
+    String message,
+    AppSnackbarType type,
+  ) {
+    messenger
+      ..removeCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: switch (type) {
+            AppSnackbarType.success => AppColors.success,
+            AppSnackbarType.error => AppColors.error,
+            AppSnackbarType.warning => AppColors.warning,
+            AppSnackbarType.info => AppColors.primary,
+          },
+        ),
+      );
   }
 }

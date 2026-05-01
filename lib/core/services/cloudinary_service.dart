@@ -12,14 +12,27 @@ CloudinaryService cloudinaryService(CloudinaryServiceRef ref) {
 }
 
 class CloudinaryService {
-  static const String cloudName = 'dspvc4fht';
-  static const String uploadPreset = 'reducer';
-  static const String apiKey = 'UK-ClCRDLg4J-zRSGYPqLTK97i4';
+  static const String cloudName = String.fromEnvironment(
+    'CLOUDINARY_CLOUD_NAME',
+  );
+  static const String uploadPreset = String.fromEnvironment(
+    'CLOUDINARY_UPLOAD_PRESET',
+  );
+  static const String apiKey = String.fromEnvironment('CLOUDINARY_API_KEY');
 
   /// Uploads a profile image to Cloudinary and returns the secure URL.
   Future<String?> uploadProfileImage(File file, String userId) async {
-    final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-    
+    if (cloudName.isEmpty || uploadPreset.isEmpty) {
+      debugPrint(
+        'CloudinaryService: Missing configuration (CLOUDINARY_CLOUD_NAME or CLOUDINARY_UPLOAD_PRESET)',
+      );
+      return null;
+    }
+
+    final url = Uri.parse(
+      'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
+    );
+
     final request = http.MultipartRequest('POST', url)
       ..fields['upload_preset'] = uploadPreset
       // Dynamic folder based on userId as requested
@@ -32,7 +45,7 @@ class CloudinaryService {
     try {
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonMap = jsonDecode(responseBody);
         return jsonMap['secure_url'] as String;

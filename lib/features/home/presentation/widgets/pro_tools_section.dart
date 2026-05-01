@@ -26,42 +26,51 @@ class ProToolsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildHeader(context, l10n),
-        const SizedBox(height: AppDimensions.lg),
-        FeatureListTile(
-          title: l10n.bulkProcessing,
-          subtitle: l10n.bulkSubtitle,
-          icon: Iconsax.layer,
-          isPro: true,
-          hasAccess: isPro,
-          onTap: () => _handleProFeature(context, isPro, isLoggedIn, '/bulk-editor', l10n),
-        ),
-        const SizedBox(height: AppDimensions.md),
-        FeatureListTile(
-          title: l10n.exifEraser,
-          subtitle: l10n.exifSubtitle,
-          icon: Iconsax.shield_tick,
-          isPro: false,
-          hasAccess: true,
-          onTap: () => AdManager().showInterstitialAd(
-            onComplete: () => context.push('/exif-eraser'),
-          ),
-        ),
-        const SizedBox(height: AppDimensions.md),
-        FeatureListTile(
-          title: l10n.viewHistory,
-          subtitle: l10n.viewHistorySubtitle,
-          icon: Iconsax.clock,
-          isPro: false,
-          hasAccess: true,
-          onTap: () => AdManager().showInterstitialAd(
-            onComplete: () => context.go('/gallery'),
-          ),
-        ),
-      ],
-    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0);
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context, l10n),
+            const SizedBox(height: AppDimensions.lg),
+            FeatureListTile(
+              title: l10n.bulkProcessing,
+              subtitle: l10n.bulkSubtitle,
+              icon: Iconsax.layer,
+              isPro: true,
+              hasAccess: isPro,
+              onTap: () => _handleProFeature(
+                context,
+                isPro,
+                isLoggedIn,
+                '/bulk-editor',
+                l10n,
+              ),
+            ),
+            const SizedBox(height: AppDimensions.md),
+            FeatureListTile(
+              title: l10n.exifEraser,
+              subtitle: l10n.exifSubtitle,
+              icon: Iconsax.shield_tick,
+              isPro: false,
+              hasAccess: true,
+              onTap: () => AdManager().showInterstitialAd(
+                onComplete: () => context.push('/exif-eraser'),
+              ),
+            ),
+            const SizedBox(height: AppDimensions.md),
+            FeatureListTile(
+              title: l10n.viewHistory,
+              subtitle: l10n.viewHistorySubtitle,
+              icon: Iconsax.clock,
+              isPro: false,
+              hasAccess: true,
+              onTap: () => AdManager().showInterstitialAd(
+                onComplete: () => context.go('/gallery'),
+              ),
+            ),
+          ],
+        )
+        .animate()
+        .fadeIn(delay: 200.ms, duration: 400.ms)
+        .slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
@@ -81,9 +90,9 @@ class ProToolsSection extends StatelessWidget {
             ),
             child: Text(
               l10n.proBadge,
-              style: AppTextStyles.badgeLabel(context).copyWith(
-                color: AppColors.premium,
-              ),
+              style: AppTextStyles.badgeLabel(
+                context,
+              ).copyWith(color: AppColors.premium),
             ),
           ),
       ],

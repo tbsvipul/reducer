@@ -35,13 +35,15 @@ class FeatureListTile extends StatelessWidget {
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
           width: 1,
         ),
-        boxShadow: isDark ? [] : [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -49,20 +51,29 @@ class FeatureListTile extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.lg, vertical: AppDimensions.md),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.lg,
+              vertical: AppDimensions.md,
+            ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(AppDimensions.md),
                   decoration: BoxDecoration(
-                    color: isPro && !hasAccess 
-                        ? (isDark ? Colors.white10 : AppColors.lightSurfaceVariant)
+                    color: isPro && !hasAccess
+                        ? (isDark
+                              ? Colors.white10
+                              : AppColors.lightSurfaceVariant)
                         : AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                   ),
                   child: Icon(
                     icon,
-                    color: isPro && !hasAccess ? (isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant) : AppColors.primary,
+                    color: isPro && !hasAccess
+                        ? (isDark
+                              ? AppColors.onDarkSurfaceVariant
+                              : AppColors.onLightSurfaceVariant)
+                        : AppColors.primary,
                     size: 24,
                   ),
                 ),
@@ -77,12 +88,20 @@ class FeatureListTile extends StatelessWidget {
                             title,
                             style: AppTextStyles.titleMedium(context).copyWith(
                               fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.onDarkSurface : AppColors.onLightSurface,
+                              color: isDark
+                                  ? AppColors.onDarkSurface
+                                  : AppColors.onLightSurface,
                             ),
                           ),
                           if (isPro && !hasAccess) ...[
                             const SizedBox(width: AppDimensions.sm),
-                            Icon(Iconsax.lock, size: 14, color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+                            Icon(
+                              Iconsax.lock,
+                              size: 14,
+                              color: isDark
+                                  ? AppColors.onDarkSurfaceVariant
+                                  : AppColors.onLightSurfaceVariant,
+                            ),
                           ],
                         ],
                       ),
@@ -90,7 +109,9 @@ class FeatureListTile extends StatelessWidget {
                       Text(
                         subtitle,
                         style: AppTextStyles.bodySmall(context).copyWith(
-                          color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+                          color: isDark
+                              ? AppColors.onDarkSurfaceVariant
+                              : AppColors.onLightSurfaceVariant,
                         ),
                       ),
                     ],
@@ -109,4 +130,3 @@ class FeatureListTile extends StatelessWidget {
     );
   }
 }
-

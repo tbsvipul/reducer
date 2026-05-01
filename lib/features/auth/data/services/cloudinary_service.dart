@@ -6,14 +6,20 @@ import 'package:http/http.dart' as http;
 
 class CloudinaryService {
   // Cloudinary configuration
-  static const String cloudName = String.fromEnvironment('CLOUDINARY_CLOUD_NAME');
-  static const String uploadPreset = String.fromEnvironment('CLOUDINARY_UPLOAD_PRESET');
+  static const String cloudName = String.fromEnvironment(
+    'CLOUDINARY_CLOUD_NAME',
+  );
+  static const String uploadPreset = String.fromEnvironment(
+    'CLOUDINARY_UPLOAD_PRESET',
+  );
 
   /// Upload image to Cloudinary using unsigned upload preset.
   /// Returns the secure delivery URL on success, else null.
   Future<String?> uploadImage(File imageFile, {String? userId}) async {
     if (cloudName.isEmpty || uploadPreset.isEmpty) {
-      debugPrint('CloudinaryService: Missing configuration (CLOUD_NAME or UPLOAD_PRESET)');
+      debugPrint(
+        'CloudinaryService: Missing configuration (CLOUD_NAME or UPLOAD_PRESET)',
+      );
       return null;
     }
 
@@ -45,9 +51,7 @@ class CloudinaryService {
         return null;
       }
 
-      debugPrint(
-        'CloudinaryService: upload failed (${response.statusCode})',
-      );
+      debugPrint('CloudinaryService: upload failed (${response.statusCode})');
       return null;
     } catch (e) {
       debugPrint('CloudinaryService: upload error: $e');
@@ -55,4 +59,3 @@ class CloudinaryService {
     }
   }
 }
-

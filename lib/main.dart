@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,12 +23,13 @@ import 'core/routes/app_router.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/force_update_service.dart';
 import 'package:reducer/core/services/remote_config_service.dart';
+import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
 import 'firebase_options.dart';
 
 void main() async {
   // 1. Core Framework Setup
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 2. Preserve native splash until Flutter is ready
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
@@ -44,79 +46,80 @@ void main() async {
       cacheSizeBytes: 104857600, // 100 MB
     );
 
-    // 2. Memory & Image Configuration
+    // Memory & Image Configuration
     // Reduced from 120MB/200 to 64MB/100 to prevent OOM on low-end devices
     PaintingBinding.instance.imageCache
-      ..maximumSizeBytes = 64 << 20 // 64MB
+      ..maximumSizeBytes =
+          64 <<
+          20 // 64MB
       ..maximumSize = 100;
 
-    // Fire and forget non-blocking initializations
-    await Future.microtask(() async {
-      await RemoteConfigService().init();
-      
-      // 5. Firebase Crashlytics Setup
-      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-      PlatformDispatcher.instance.onError = (error, stack) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-        return true;
-      };
-      
-      unawaited(_initializeSecondaryServices());
-    });
+    // Firebase Crashlytics Setup (synchronous — just assigning callbacks)
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+
+    // RemoteConfig + secondary services fire in the background.
+    // Do NOT await — they must never delay the first frame.
+    unawaited(RemoteConfigService().init());
+    unawaited(_initializeSecondaryServices());
   } catch (e) {
     debugPrint('Critical initialization failure: $e');
   }
 
-    // 6. Global Error Boundary (Production Hardening)
-    ErrorWidget.builder = (FlutterErrorDetails details) {
-      return Material(
-        child: Container(
-          color: const Color(0xFF020617),
-          padding: const EdgeInsets.all(24.0),
-          child: const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 60),
-              SizedBox(height: 16),
-              Text(
-                'Something went wrong',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+  // 6. Global Error Boundary (Production Hardening)
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      child: Container(
+        color: const Color(0xFF020617),
+        padding: const EdgeInsets.all(24.0),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Colors.red, size: 60),
+            SizedBox(height: 16),
+            Text(
+              'Something went wrong',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
-              SizedBox(height: 8),
-              Text(
-                'We encountered an unexpected error. Our team has been notified.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70),
-              ),
-            ],
-          ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'We encountered an unexpected error. Our team has been notified.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70),
+            ),
+          ],
         ),
-      );
-    };
+      ),
+    );
+  };
 
-    // 7. Start App immediately
-    runApp(const ProviderScope(child: MyApp()));
+  // 7. Start App immediately
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 /// Services that can initialize in the background without blocking the UI thread.
 Future<void> _initializeSecondaryServices() async {
   try {
+    // 1. Core independent services (Parallel)
+    await Future.wait([
+      MobileAds.instance.initialize(), // Warm up SDK early
+      NotificationService().init(),
+      ConsentManager().configure(
+        testDeviceIds: _umpTestDeviceIdsFromEnv(),
+        forceEeaInDebug: kDebugMode,
+      ),
+      ImageProcessor.cleanupTempFiles(),
+    ]);
 
-    
-    // Notifications init - Await to ensure channels are ready
-    await NotificationService().init();
-    
-    // Permission requests shouldn't block startup
+    // 2. Post-init background tasks
     unawaited(NotificationService().requestPermissions());
-    
-    // Consent & Ads
-    unawaited(ConsentManager().configure(
-      testDeviceIds: _umpTestDeviceIdsFromEnv(),
-      forceEeaInDebug: kDebugMode,
-    ));
-
-    // Cleanup old temp processing files
-    unawaited(ImageProcessor.cleanupTempFiles());
   } catch (e) {
     debugPrint('Secondary service initialization error: $e');
   }
@@ -147,6 +150,9 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(_lifecycleObserver);
+
+    // Eagerly initialize purchase stream globally
+    ref.read(premiumControllerProvider.notifier);
   }
 
   @override
@@ -154,6 +160,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
     AdManager().disposeAll();
     ConnectivityService().dispose();
+    RemoteConfigService().dispose();
     super.dispose();
   }
 
@@ -167,8 +174,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       designSize: const Size(390, 844),
       minTextAdapt: true,
       splitScreenMode: true,
-          builder: (context, child) {
-            return MaterialApp.router(
+      builder: (context, child) {
+        return MaterialApp.router(
           title: 'Reducer',
           debugShowCheckedModeBanner: false,
           builder: (context, child) {
@@ -177,38 +184,37 @@ class _MyAppState extends ConsumerState<MyApp> {
             });
             return child!;
           },
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
-      routerConfig: router,
-      locale: locale,
-      localizationsDelegates: [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('zh'),
-        Locale('hi'),
-        Locale('es'),
-        Locale('ar'),
-        Locale('fr'),
-        Locale('pt'),
-        Locale('ru'),
-        Locale('de'),
-        Locale('ja'),
-        Locale('ko'),
-        Locale('tr'),
-        Locale('vi'),
-        Locale('id'),
-        Locale('pl'),
-        Locale('et'),
-      ],
-    );
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          routerConfig: router,
+          locale: locale,
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('zh'),
+            Locale('hi'),
+            Locale('es'),
+            Locale('ar'),
+            Locale('fr'),
+            Locale('pt'),
+            Locale('ru'),
+            Locale('de'),
+            Locale('ja'),
+            Locale('ko'),
+            Locale('tr'),
+            Locale('vi'),
+            Locale('id'),
+            Locale('pl'),
+            Locale('et'),
+          ],
+        );
       },
     );
   }
 }
-

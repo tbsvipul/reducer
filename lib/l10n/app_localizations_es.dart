@@ -949,6 +949,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get deletePermanently => 'Delete Permanently';
+
+  @override
+  String get accountDeletedSuccess => 'Account deleted successfully.';
+
+  @override
+  String get deleteAccountReauthNeeded =>
+      'Deletion failed. For security, you may need to log out and log back in before deleting your account.';
+
+  @override
+  String get account => 'Account';
+
+  @override
   String get buy => 'BUY';
 
   @override
@@ -959,4 +972,41 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get successRestore => 'Restored Successfully!';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get noProcessedImageYet => 'No processed image yet';
+
+  @override
+  String get processImageFirstHint =>
+      'Go to the Settings tab and tap \"Process Image\".';
+
+  @override
+  String get beforeOriginal => 'Before (Original)';
+
+  @override
+  String get afterProcessed => 'After (Processed)';
+
+  @override
+  String get comparePreviewLabel => 'Processed image preview';
+
+  @override
+  String get holdImageToCompare => 'Hold image to compare';
+
+  @override
+  String get sizeReducedLabel => 'Size Reduced';
+
+  @override
+  String get noName => 'No Name';
+
+  @override
+  String get verifyEmail => 'Verify Email';
+
+  @override
+  String get undo => 'Undo';
 }

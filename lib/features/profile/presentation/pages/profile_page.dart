@@ -19,7 +19,9 @@ class ProfilePage extends ConsumerWidget {
     final userAsync = ref.watch(userProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       body: authAsync.when(
         data: (auth) {
           if (auth == null || auth.isAnonymous) {
@@ -31,7 +33,8 @@ class ProfilePage extends ConsumerWidget {
               if (user == null) {
                 return AppErrorWidget(
                   message: 'Profile data not found.',
-                  onRetry: () => ref.read(authControllerProvider.notifier).signOut(),
+                  onRetry: () =>
+                      ref.read(authControllerProvider.notifier).signOut(),
                 );
               }
               return ProfileDetailsView(user: user);

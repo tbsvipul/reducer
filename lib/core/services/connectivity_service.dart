@@ -16,7 +16,7 @@ class ConnectivityService {
   Future<void> _init() async {
     final result = await _connectivity.checkConnectivity();
     _updateStatus(result);
-    
+
     _subscription = _connectivity.onConnectivityChanged.listen((results) {
       _updateStatus(results);
     });
@@ -24,10 +24,13 @@ class ConnectivityService {
 
   void _updateStatus(List<ConnectivityResult> results) {
     // Basic check: if any result is not 'none', we consider it connected
-    final connected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
+    final connected =
+        results.isNotEmpty && !results.contains(ConnectivityResult.none);
     if (isConnected.value != connected) {
       isConnected.value = connected;
-      debugPrint('🌐 Connectivity changed: ${connected ? "Connected" : "Disconnected"}');
+      debugPrint(
+        '🌐 Connectivity changed: ${connected ? "Connected" : "Disconnected"}',
+      );
     }
   }
 
@@ -38,4 +41,3 @@ class ConnectivityService {
     isConnected.dispose();
   }
 }
-

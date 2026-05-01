@@ -19,13 +19,22 @@ class RouterNotifier extends ChangeNotifier {
     _user = _ref.read(authStateChangesProvider).value;
 
     // Listen to startup state and notify GoRouter
-    _ref.listen<bool>(appStartupProvider, (previous, current) => notifyListeners());
+    _ref.listen<bool>(
+      appStartupProvider,
+      (previous, current) => notifyListeners(),
+    );
 
     // Listen to onboarding state and notify GoRouter
-    _ref.listen<bool?>(onboardingProvider, (previous, current) => notifyListeners());
+    _ref.listen<bool?>(
+      onboardingProvider,
+      (previous, current) => notifyListeners(),
+    );
 
     // Listen to auth state changes and notify GoRouter
-    _ref.listen<AsyncValue<AppUser?>>(authStateChangesProvider, (previous, next) {
+    _ref.listen<AsyncValue<AppUser?>>(authStateChangesProvider, (
+      previous,
+      next,
+    ) {
       if (next is AsyncData) {
         _user = next.value;
         notifyListeners();
@@ -57,8 +66,9 @@ class RouterNotifier extends ChangeNotifier {
       // Still loading onboarding status, stay on splash or current
       return null;
     }
-    
-    if (onboardingStatus == true) { // true means first time
+
+    if (onboardingStatus == true) {
+      // true means first time
       return path == '/language-selection' ? null : '/language-selection';
     }
 
@@ -68,7 +78,8 @@ class RouterNotifier extends ChangeNotifier {
       if (path == '/splash') {
         return '/';
       }
-      if (path == '/language-selection' && state.uri.queryParameters['fromSettings'] != 'true') {
+      if (path == '/language-selection' &&
+          state.uri.queryParameters['fromSettings'] != 'true') {
         return '/';
       }
     }
@@ -81,11 +92,11 @@ class RouterNotifier extends ChangeNotifier {
 
     // Hard-gate premium-only routes.
     final credits = _ref.read(exifCreditProvider).availableCredits;
-    
+
     if (path == '/bulk-editor' && !isPro) {
       return '/premium';
     }
-    
+
     if (path == '/exif-eraser' && !isPro && credits <= 0) {
       return '/premium';
     }
@@ -119,4 +130,3 @@ class RouterNotifier extends ChangeNotifier {
 final routerNotifierProvider = Provider<RouterNotifier>(
   (ref) => RouterNotifier(ref),
 );
-

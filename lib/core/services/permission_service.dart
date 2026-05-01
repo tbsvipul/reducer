@@ -129,4 +129,3 @@ class PermissionService {
     debugPrint('PERMISSION ERROR: $message');
   }
 }
-

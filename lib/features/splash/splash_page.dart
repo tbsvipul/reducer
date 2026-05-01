@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reducer/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:reducer/features/premium/data/datasources/purchase_datasource.dart';
+
 import 'package:reducer/core/ads/ad_manager.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -18,20 +18,24 @@ class SplashScreen extends ConsumerStatefulWidget {
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends ConsumerState<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 2000));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
     _controller.forward();
-    
+
     // Remove native splash as soon as first Flutter frame is painted
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
     });
-    
+
     _initializeApp();
   }
 
@@ -42,31 +46,32 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   }
 
   Future<void> _initializeApp() async {
-    // Parallelize branding delay and critical setup
-    final minDelay = Future.delayed(const Duration(milliseconds: 800));
-    
     try {
-      // 1. Resolve Auth first (needed for Premium check)
-      await _initializeAuth();
-
-      // 2. Fetch Premium status and sync to AdManager
-      // This ensures ads are ONLY initialized if the user is truly non-premium
-      await ref.read(premiumControllerProvider.notifier).fetchOffersAndCheckStatus();
-
-      // 3. Concurrent initialization of UI delays and Ads
-      await Future.wait([
-        minDelay,
-        AdManager.initialize(),
-      ]);
+      // Run auth and ad initialization in parallel — they are independent.
+      // Auth is needed before the App Open ad is shown, but ad SDK
+      // initialization (consent + MobileAds.init) does NOT need auth.
+      await Future.wait([_initializeAuth(), AdManager.initialize()]).timeout(
+        const Duration(seconds: 6),
+        onTimeout: () {
+          debugPrint(
+            '[Splash] Core init timed out (6s), proceeding with defaults',
+          );
+          return []; // Return empty list to satisfy Future.wait type
+        },
+      );
 
       if (!mounted) return;
 
-      // 2. Show App Open Ad (Handles timeout internally)
-      await AdManager().showSplashAd(onDone: () async {
-        if (mounted) {
-          ref.read(appStartupProvider.notifier).setInitialized();
-        }
-      });
+      // Show App Open Ad with a hard 2-second total timeout.
+      // PurchaseNotifier already calls fetchOffersAndCheckStatus() in _init,
+      // so we do NOT duplicate that blocking call here.
+      await AdManager().showSplashAd(
+        onDone: () {
+          if (mounted) {
+            ref.read(appStartupProvider.notifier).setInitialized();
+          }
+        },
+      );
     } catch (e) {
       debugPrint('Splash init error: $e');
       if (mounted) {
@@ -74,6 +79,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       }
     }
   }
+
   Future<void> _initializeAuth() async {
     final authRepo = ref.read(authRepositoryProvider);
     if (authRepo.currentUser == null) {
@@ -106,8 +112,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
           ),
 
           // Optional: Subtle floating decorative elements
-          _buildDecorativeCircle(top: -50, right: -50, size: 200, opacity: 0.03),
-          _buildDecorativeCircle(bottom: 100, left: -30, size: 150, opacity: 0.02),
+          _buildDecorativeCircle(
+            top: -50,
+            right: -50,
+            size: 200,
+            opacity: 0.03,
+          ),
+          _buildDecorativeCircle(
+            bottom: 100,
+            left: -30,
+            size: 150,
+            opacity: 0.02,
+          ),
 
           // Central Logo & Branding
           Center(
@@ -115,48 +131,60 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
               mainAxisSize: MainAxisSize.min,
               children: [
                 Hero(
-                  tag: 'app_logo',
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withValues(alpha: 0.08),
-                          blurRadius: 40,
-                          spreadRadius: 10,
+                      tag: 'app_logo',
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.withValues(alpha: 0.08),
+                              blurRadius: 40,
+                              spreadRadius: 10,
+                            ),
+                          ],
                         ),
-                      ],
+                        child: Image.asset(
+                          'assets/logo/reducer_logo_bg.png',
+                          width: 160.r,
+                          height: 160.r,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    )
+                    .animate(
+                      onPlay: (controller) => controller.repeat(reverse: true),
+                    )
+                    .moveY(
+                      begin: -5,
+                      end: 5,
+                      duration: 2500.ms,
+                      curve: Curves.easeInOut,
+                    )
+                    .scale(
+                      begin: const Offset(1, 1),
+                      end: const Offset(1.02, 1.02),
+                      duration: 2500.ms,
+                      curve: Curves.easeInOut,
                     ),
-                    child: Image.asset(
-                      'assets/logo/reducer_logo_bg.png',
-                      width: 160.r,
-                      height: 160.r,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                )
-                    .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                    .moveY(begin: -5, end: 5, duration: 2500.ms, curve: Curves.easeInOut)
-                    .scale(begin: const Offset(1, 1), end: const Offset(1.02, 1.02), duration: 2500.ms, curve: Curves.easeInOut),
-                
+
                 SizedBox(height: 40.h),
-                
+
                 // Minimalist App Name
                 Text(
-                  AppLocalizations.of(context)!.appTitle,
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: const Color(0xFF1E293B), // Slate 800
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 10.w,
-                    fontSize: 26.sp,
-                  ),
-                )
+                      AppLocalizations.of(context)!.appTitle,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        color: const Color(0xFF1E293B), // Slate 800
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 10.w,
+                        fontSize: 26.sp,
+                      ),
+                    )
                     .animate()
                     .fadeIn(delay: 400.ms, duration: 800.ms)
                     .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
-                
+
                 SizedBox(height: 8.h),
-                
+
                 Text(
                   "IMAGE STUDIO",
                   style: TextStyle(
@@ -178,16 +206,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
             child: Column(
               children: [
                 SizedBox(
-                  width: 60.w,
-                  height: 3.h,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusFull.r),
-                    child: const LinearProgressIndicator(
-                      backgroundColor: Color(0xFFE2E8F0), // Slate 200
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)), // Blue 500
-                    ),
-                  ),
-                )
+                      width: 60.w,
+                      height: 3.h,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusFull.r,
+                        ),
+                        child: const LinearProgressIndicator(
+                          backgroundColor: Color(0xFFE2E8F0), // Slate 200
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF3B82F6),
+                          ), // Blue 500
+                        ),
+                      ),
+                    )
                     .animate()
                     .fadeIn(delay: 1000.ms)
                     .scaleX(begin: 0, end: 1, duration: 600.ms),
@@ -218,20 +250,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     double? right,
   }) {
     return Positioned(
-      top: top,
-      bottom: bottom,
-      left: left,
-      right: right,
-      child: Container(
-        width: size.r,
-        height: size.r,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0xFF3B82F6).withValues(alpha: opacity),
-        ),
-      ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true))
-      .move(begin: const Offset(-10, -10), end: const Offset(10, 10), duration: 5.seconds, curve: Curves.easeInOut);
+          top: top,
+          bottom: bottom,
+          left: left,
+          right: right,
+          child: Container(
+            width: size.r,
+            height: size.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF3B82F6).withValues(alpha: opacity),
+            ),
+          ),
+        )
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .move(
+          begin: const Offset(-10, -10),
+          end: const Offset(10, 10),
+          duration: 5.seconds,
+          curve: Curves.easeInOut,
+        );
   }
 }
-

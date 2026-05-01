@@ -6,15 +6,9 @@ class ExifCreditState {
   final int availableCredits;
   final bool isLoading;
 
-  const ExifCreditState({
-    this.availableCredits = 2,
-    this.isLoading = true,
-  });
+  const ExifCreditState({this.availableCredits = 2, this.isLoading = true});
 
-  ExifCreditState copyWith({
-    int? availableCredits,
-    bool? isLoading,
-  }) {
+  ExifCreditState copyWith({int? availableCredits, bool? isLoading}) {
     return ExifCreditState(
       availableCredits: availableCredits ?? this.availableCredits,
       isLoading: isLoading ?? this.isLoading,
@@ -22,9 +16,10 @@ class ExifCreditState {
   }
 }
 
-final exifCreditProvider = StateNotifierProvider<ExifCreditController, ExifCreditState>((ref) {
-  return ExifCreditController();
-});
+final exifCreditProvider =
+    StateNotifierProvider<ExifCreditController, ExifCreditState>((ref) {
+      return ExifCreditController();
+    });
 
 class ExifCreditController extends StateNotifier<ExifCreditState> {
   static const _storageKey = 'exif_eraser_credits_v1';
@@ -58,7 +53,7 @@ class ExifCreditController extends StateNotifier<ExifCreditState> {
 
     final newVal = state.availableCredits - 1;
     state = state.copyWith(availableCredits: newVal);
-    
+
     try {
       await _secureStorage.write(key: _storageKey, value: newVal.toString());
     } catch (e) {
@@ -73,4 +68,3 @@ class ExifCreditController extends StateNotifier<ExifCreditState> {
     await _secureStorage.write(key: _storageKey, value: '2');
   }
 }
-

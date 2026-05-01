@@ -36,7 +36,9 @@ class ExportTabView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final processedSize = processedImageBytes?.length ?? 0;
-    final savedPercent = originalSize > 0 ? ((originalSize - processedSize) / originalSize * 100).toInt() : 0;
+    final savedPercent = originalSize > 0
+        ? ((originalSize - processedSize) / originalSize * 100).toInt()
+        : 0;
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(AppDimensions.lg.r),
@@ -49,9 +51,22 @@ class ExportTabView extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildSummaryItem(context, FileUtils.formatFileSizeDetailed(processedSize), l10n.output),
-                _buildSummaryItem(context, '$savedPercent%', l10n.saved, color: AppColors.primary),
-                _buildSummaryItem(context, settings.format.name, l10n.formatLabel),
+                _buildSummaryItem(
+                  context,
+                  FileUtils.formatFileSizeDetailed(processedSize),
+                  l10n.output,
+                ),
+                _buildSummaryItem(
+                  context,
+                  '$savedPercent%',
+                  l10n.saved,
+                  color: AppColors.primary,
+                ),
+                _buildSummaryItem(
+                  context,
+                  settings.format.name,
+                  l10n.formatLabel,
+                ),
               ],
             ),
           ),
@@ -61,19 +76,39 @@ class ExportTabView extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
             ),
             child: Column(
               children: [
-                _buildStatRow(context, l10n.originalSize, FileUtils.formatFileSize(originalSize)),
-                _buildStatRow(context, l10n.compressed, FileUtils.formatFileSize(processedSize), valueColor: AppColors.primary),
-                _buildStatRow(context, l10n.dimensions, '${settings.width?.toInt() ?? originalWidth} × ${settings.height?.toInt() ?? originalHeight}'),
-                _buildStatRow(context, l10n.format, settings.format.name, isLast: true),
+                _buildStatRow(
+                  context,
+                  l10n.originalSize,
+                  FileUtils.formatFileSize(originalSize),
+                ),
+                _buildStatRow(
+                  context,
+                  l10n.compressed,
+                  FileUtils.formatFileSize(processedSize),
+                  valueColor: AppColors.primary,
+                ),
+                _buildStatRow(
+                  context,
+                  l10n.dimensions,
+                  '${settings.width?.toInt() ?? originalWidth} × ${settings.height?.toInt() ?? originalHeight}',
+                ),
+                _buildStatRow(
+                  context,
+                  l10n.format,
+                  settings.format.name,
+                  isLast: true,
+                ),
               ],
             ),
           ),
           SizedBox(height: AppDimensions.xl2.h),
-          
+
           if (processedImageBytes != null) ...[
             Row(
               children: [
@@ -90,10 +125,18 @@ class ExportTabView extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onShare,
                     icon: Icon(Iconsax.share, size: 20.r),
-                    label: Text(l10n.share, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                    label: Text(
+                      l10n.share,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16.h),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                       side: BorderSide(color: AppColors.primary, width: 1.r),
                       foregroundColor: AppColors.primary,
                     ),
@@ -108,7 +151,10 @@ class ExportTabView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.r),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  width: 1.r,
+                ),
               ),
               child: Column(
                 children: [
@@ -116,13 +162,20 @@ class ExportTabView extends StatelessWidget {
                   SizedBox(height: 12.h),
                   Text(
                     l10n.readyToExport,
-                    style: AppTextStyles.titleMedium(context).copyWith(fontWeight: FontWeight.bold, fontSize: 16.sp),
+                    style: AppTextStyles.titleMedium(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.bold, fontSize: 16.sp),
                   ),
                   SizedBox(height: 4.h),
                   Text(
                     l10n.applyChangesMessage,
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant, fontSize: 11.sp),
+                    style: AppTextStyles.labelSmall(context).copyWith(
+                      color: isDark
+                          ? AppColors.onDarkSurfaceVariant
+                          : AppColors.onLightSurfaceVariant,
+                      fontSize: 11.sp,
+                    ),
                   ),
                 ],
               ),
@@ -133,7 +186,12 @@ class ExportTabView extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryItem(BuildContext context, String value, String label, {Color? color}) {
+  Widget _buildSummaryItem(
+    BuildContext context,
+    String value,
+    String label, {
+    Color? color,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
@@ -141,14 +199,18 @@ class ExportTabView extends StatelessWidget {
           value,
           style: AppTextStyles.titleLarge(context).copyWith(
             fontWeight: FontWeight.w800,
-            color: color ?? (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
+            color:
+                color ??
+                (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
             fontSize: 20.sp,
           ),
         ),
         Text(
           label,
           style: AppTextStyles.labelSmall(context).copyWith(
-            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant, 
+            color: isDark
+                ? AppColors.onDarkSurfaceVariant
+                : AppColors.onLightSurfaceVariant,
             letterSpacing: 1.w,
             fontSize: 10.sp,
           ),
@@ -157,19 +219,35 @@ class ExportTabView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(BuildContext context, String label, String value, {Color? valueColor, bool isLast = false}) {
+  Widget _buildStatRow(
+    BuildContext context,
+    String label,
+    String value, {
+    Color? valueColor,
+    bool isLast = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 12.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant, fontSize: 13.sp)),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark
+                  ? AppColors.onDarkSurfaceVariant
+                  : AppColors.onLightSurfaceVariant,
+              fontSize: 13.sp,
+            ),
+          ),
           Text(
             value,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: valueColor ?? (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
+              color:
+                  valueColor ??
+                  (isDark ? AppColors.onDarkSurface : AppColors.onLightSurface),
               fontSize: 13.sp,
             ),
           ),
@@ -178,7 +256,11 @@ class ExportTabView extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(BuildContext context, {required String title, required Widget child}) {
+  Widget _buildCard(
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,7 +270,9 @@ class ExportTabView extends StatelessWidget {
           style: AppTextStyles.labelSmall(context).copyWith(
             letterSpacing: 1.2.w,
             fontWeight: FontWeight.w800,
-            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            color: isDark
+                ? AppColors.onDarkSurfaceVariant
+                : AppColors.onLightSurfaceVariant,
             fontSize: 11.sp,
           ),
         ),
@@ -198,7 +282,10 @@ class ExportTabView extends StatelessWidget {
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1.r),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              width: 1.r,
+            ),
           ),
           child: child,
         ),
@@ -206,4 +293,3 @@ class ExportTabView extends StatelessWidget {
     );
   }
 }
-

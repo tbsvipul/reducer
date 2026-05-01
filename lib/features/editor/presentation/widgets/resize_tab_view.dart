@@ -37,12 +37,32 @@ class ResizeTabView extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: _buildDimensionInput(context, l10n.width.toUpperCase(), settings.width?.toInt() ?? originalWidth)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.sm),
-                      child: Icon(Icons.close, size: 16.r, color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant),
+                    Expanded(
+                      child: _buildDimensionInput(
+                        context,
+                        l10n.width.toUpperCase(),
+                        settings.width?.toInt() ?? originalWidth,
+                      ),
                     ),
-                    Expanded(child: _buildDimensionInput(context, l10n.height.toUpperCase(), settings.height?.toInt() ?? originalHeight)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.sm,
+                      ),
+                      child: Icon(
+                        Icons.close,
+                        size: 16.r,
+                        color: isDark
+                            ? AppColors.onDarkSurfaceVariant
+                            : AppColors.onLightSurfaceVariant,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildDimensionInput(
+                        context,
+                        l10n.height.toUpperCase(),
+                        settings.height?.toInt() ?? originalHeight,
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(height: AppDimensions.lg.h),
@@ -52,15 +72,28 @@ class ResizeTabView extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(l10n.lockAspectRatio, style: AppTextStyles.bodyMedium(context).copyWith(fontWeight: FontWeight.bold)),
-                        Text(l10n.aspectRatioMaintained, style: AppTextStyles.labelSmall(context).copyWith(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant)),
+                        Text(
+                          l10n.lockAspectRatio,
+                          style: AppTextStyles.bodyMedium(
+                            context,
+                          ).copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          l10n.aspectRatioMaintained,
+                          style: AppTextStyles.labelSmall(context).copyWith(
+                            color: isDark
+                                ? AppColors.onDarkSurfaceVariant
+                                : AppColors.onLightSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
-                      Switch.adaptive(
-                        value: settings.lockAspect,
-                        activeTrackColor: AppColors.primary,
-                        onChanged: (v) => onSettingsChanged(settings.copyWith(lockAspect: v)),
-                      ),
+                    Switch.adaptive(
+                      value: settings.lockAspect,
+                      activeTrackColor: AppColors.primary,
+                      onChanged: (v) =>
+                          onSettingsChanged(settings.copyWith(lockAspect: v)),
+                    ),
                   ],
                 ),
               ],
@@ -73,11 +106,17 @@ class ResizeTabView extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(l10n.flipHorizontal, style: AppTextStyles.bodyMedium(context).copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  l10n.flipHorizontal,
+                  style: AppTextStyles.bodyMedium(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.bold),
+                ),
                 Switch.adaptive(
                   value: settings.flipHorizontal,
                   activeTrackColor: AppColors.primary,
-                  onChanged: (v) => onSettingsChanged(settings.copyWith(flipHorizontal: v)),
+                  onChanged: (v) =>
+                      onSettingsChanged(settings.copyWith(flipHorizontal: v)),
                 ),
               ],
             ),
@@ -92,14 +131,24 @@ class ResizeTabView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSmall(context).copyWith(fontSize: 10.sp, color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant)),
+        Text(
+          label,
+          style: AppTextStyles.labelSmall(context).copyWith(
+            fontSize: 10.sp,
+            color: isDark
+                ? AppColors.onDarkSurfaceVariant
+                : AppColors.onLightSurfaceVariant,
+          ),
+        ),
         SizedBox(height: 4.h),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : Colors.white,
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            ),
           ),
           child: Row(
             children: [
@@ -107,8 +156,13 @@ class ResizeTabView extends StatelessWidget {
                 child: TextField(
                   controller: TextEditingController(text: value.toString()),
                   keyboardType: TextInputType.number,
-                  style: AppTextStyles.bodyLarge(context).copyWith(fontWeight: FontWeight.bold),
-                  decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                  style: AppTextStyles.bodyLarge(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.bold),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
                   onSubmitted: (val) {
                     final l10n = AppLocalizations.of(context)!;
                     final newVal = double.tryParse(val);
@@ -122,7 +176,15 @@ class ResizeTabView extends StatelessWidget {
                   },
                 ),
               ),
-              Text('px', style: TextStyle(color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant, fontSize: 12.sp)),
+              Text(
+                'px',
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.onDarkSurfaceVariant
+                      : AppColors.onLightSurfaceVariant,
+                  fontSize: 12.sp,
+                ),
+              ),
             ],
           ),
         ),
@@ -130,7 +192,11 @@ class ResizeTabView extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(BuildContext context, {required String title, required Widget child}) {
+  Widget _buildCard(
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +206,9 @@ class ResizeTabView extends StatelessWidget {
           style: AppTextStyles.labelSmall(context).copyWith(
             letterSpacing: 1.2.w,
             fontWeight: FontWeight.w800,
-            color: isDark ? AppColors.onDarkSurfaceVariant : AppColors.onLightSurfaceVariant,
+            color: isDark
+                ? AppColors.onDarkSurfaceVariant
+                : AppColors.onLightSurfaceVariant,
             fontSize: 11.sp,
           ),
         ),
@@ -150,7 +218,10 @@ class ResizeTabView extends StatelessWidget {
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 1.r),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              width: 1.r,
+            ),
           ),
           child: child,
         ),

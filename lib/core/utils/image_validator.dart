@@ -7,13 +7,17 @@ import 'package:reducer/core/services/remote_config_service.dart';
 /// Utility class for validating image inputs before processing
 class ImageValidator {
   // Maximum file size in bytes (from Remote Config)
-  static int get maxFileSize => RemoteConfigService().maxFileSizeMb * 1024 * 1024;
-  
+  static int get maxFileSize =>
+      RemoteConfigService().maxFileSizeMb * 1024 * 1024;
+
   // Maximum image dimensions (from Remote Config)
   static int get maxDimension => RemoteConfigService().maxImageDimension;
 
   /// Validate file size
-  static ValidationResult validateFileSize(Uint8List bytes, AppLocalizations l10n) {
+  static ValidationResult validateFileSize(
+    Uint8List bytes,
+    AppLocalizations l10n,
+  ) {
     if (bytes.length > maxFileSize) {
       final sizeMB = (bytes.length / (1024 * 1024)).toStringAsFixed(1);
       return ValidationResult(
@@ -26,18 +30,27 @@ class ImageValidator {
   }
 
   /// Validate image dimensions
-  static ValidationResult validateDimensions(img.Image image, AppLocalizations l10n) {
+  static ValidationResult validateDimensions(
+    img.Image image,
+    AppLocalizations l10n,
+  ) {
     if (image.width > maxDimension || image.height > maxDimension) {
       return ValidationResult(
         isValid: false,
-        errorMessage: l10n.imageDimensionsTooLarge(image.width.toString(), image.height.toString()),
+        errorMessage: l10n.imageDimensionsTooLarge(
+          image.width.toString(),
+          image.height.toString(),
+        ),
       );
     }
     return ValidationResult(isValid: true);
   }
 
   /// Validate image can be decoded
-  static ValidationResult validateImageData(Uint8List bytes, AppLocalizations l10n) {
+  static ValidationResult validateImageData(
+    Uint8List bytes,
+    AppLocalizations l10n,
+  ) {
     try {
       final image = img.decodeImage(bytes);
       if (image == null) {
@@ -63,7 +76,10 @@ class ImageValidator {
   }
 
   /// Validate all aspects of an image
-  static Future<ValidationResult> validateImage(Uint8List bytes, AppLocalizations l10n) async {
+  static Future<ValidationResult> validateImage(
+    Uint8List bytes,
+    AppLocalizations l10n,
+  ) async {
     // First check file size (lightweight)
     final sizeResult = validateFileSize(bytes, l10n);
     if (!sizeResult.isValid) return sizeResult;
@@ -89,7 +105,10 @@ class ImageValidator {
   }
 
   /// Show validation error dialog
-  static void showValidationDialog(BuildContext context, ValidationResult result) {
+  static void showValidationDialog(
+    BuildContext context,
+    ValidationResult result,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
@@ -141,4 +160,3 @@ class ValidationResult {
 
   bool get hasWarning => warningMessage != null;
 }
-

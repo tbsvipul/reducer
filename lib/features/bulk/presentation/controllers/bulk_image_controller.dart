@@ -57,10 +57,10 @@ class BulkImageController extends _$BulkImageController {
   }
 
   Future<void> selectImages(List<XFile> images) async {
-    int totalSize = 0;
-    for (final img in images) {
-      totalSize += await img.length();
-    }
+    // Parallelize file size calculation
+    final sizes = await Future.wait(images.map((img) => img.length()));
+    final totalSize = sizes.fold(0, (sum, size) => sum + size);
+
     state = state.copyWith(
       selectedImages: images,
       processedResults: {},
@@ -73,8 +73,8 @@ class BulkImageController extends _$BulkImageController {
     if (state.selectedImages.isEmpty) return;
 
     // Internal Security Guard: Enforce 50-image limit for non-premium even if UI is bypassed
-    final effectiveImages = isPro 
-        ? state.selectedImages 
+    final effectiveImages = isPro
+        ? state.selectedImages
         : state.selectedImages.take(50).toList();
 
     state = state.copyWith(
@@ -116,7 +116,7 @@ class BulkImageController extends _$BulkImageController {
         },
         totalCompressedSize: state.totalCompressedSize + batchCompressedSize,
       );
-      
+
       currentIndex += update.batchResults.length;
     }
 
@@ -124,23 +124,30 @@ class BulkImageController extends _$BulkImageController {
 
     // Trigger completion notification
     if (state.processedResults.isNotEmpty) {
-      final firstResult = state.processedResults.values.firstWhere((f) => f != null, orElse: () => null);
+      final firstResult = state.processedResults.values.firstWhere(
+        (f) => f != null,
+        orElse: () => null,
+      );
       if (firstResult != null) {
         final original = _formatSize(state.totalOriginalSize);
         final compressed = _formatSize(state.totalCompressedSize);
-        final reduction = ((1 - (state.totalCompressedSize / state.totalOriginalSize)) * 100).toStringAsFixed(1);
+        final reduction =
+            ((1 - (state.totalCompressedSize / state.totalOriginalSize)) * 100)
+                .toStringAsFixed(1);
 
-        unawaited(NotificationService().showImageNotification(
-          id: 101,
-          title: l10n.optimizationComplete,
-          body: l10n.bulkOptimizationResult(
-            state.selectedImages.length,
-            original,
-            compressed,
-            reduction,
+        unawaited(
+          NotificationService().showImageNotification(
+            id: 101,
+            title: l10n.optimizationComplete,
+            body: l10n.bulkOptimizationResult(
+              state.selectedImages.length,
+              original,
+              compressed,
+              reduction,
+            ),
+            imagePath: firstResult.path,
           ),
-          imagePath: firstResult.path,
-        ));
+        );
       }
     }
   }
@@ -159,4 +166,3 @@ class BulkImageController extends _$BulkImageController {
     state = BulkImageState();
   }
 }
-

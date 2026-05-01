@@ -28,11 +28,16 @@ class ReviewService {
             if (DateTime.now().difference(lastDate).inDays < 60) return;
           }
 
-          debugPrint('[ReviewService] Threshold met, requesting native review flow');
+          debugPrint(
+            '[ReviewService] Threshold met, requesting native review flow',
+          );
           await inAppReview.requestReview();
-          
-          await prefs.setString(_lastReviewRequestKey, DateTime.now().toIso8601String());
-          await prefs.setInt(_countKey, 0); 
+
+          await prefs.setString(
+            _lastReviewRequestKey,
+            DateTime.now().toIso8601String(),
+          );
+          await prefs.setInt(_countKey, 0);
         }
       }
     } catch (e) {
@@ -41,19 +46,21 @@ class ReviewService {
   }
 
   /// Manually triggers the native in-app review window.
-  /// 
+  ///
   /// IMPORTANT: Use this only for automatic triggers (e.g. after a task).
   /// For manual "Rate Now" buttons, use [openStoreListing] instead, as Google
   /// Play may suppress this native dialog due to quotas, leading to a broken UX.
   Future<void> requestReview() async {
     try {
       final InAppReview inAppReview = InAppReview.instance;
-      
+
       if (await inAppReview.isAvailable()) {
         debugPrint('[ReviewService] Requesting native in-app review window...');
         await inAppReview.requestReview();
       } else {
-        debugPrint('[ReviewService] Native review window NOT available (Quota/Policy/Environment)');
+        debugPrint(
+          '[ReviewService] Native review window NOT available (Quota/Policy/Environment)',
+        );
       }
     } catch (e) {
       debugPrint('[ReviewService] requestReview Error: $e');

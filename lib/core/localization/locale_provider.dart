@@ -50,8 +50,9 @@ class OnboardingNotifier extends StateNotifier<bool?> {
   }
 }
 
-final onboardingProvider = StateNotifierProvider<OnboardingNotifier, bool?>((ref) {
+final onboardingProvider = StateNotifierProvider<OnboardingNotifier, bool?>((
+  ref,
+) {
   final service = ref.watch(localeServiceProvider);
   return OnboardingNotifier(service);
 });
-

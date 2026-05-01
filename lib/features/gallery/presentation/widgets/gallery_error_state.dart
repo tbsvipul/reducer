@@ -47,4 +47,3 @@ class GalleryErrorState extends StatelessWidget {
     );
   }
 }
-
